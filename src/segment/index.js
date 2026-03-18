@@ -40,18 +40,24 @@ async function segment(text, langCode) {
 function cacheTokens(messageId, lang, tokens) {
   segmentCache.set(`${messageId}:${lang}`, {
     tokens,
+    selected: new Set(),
+    results: [],
     createdAt: Date.now(),
   });
 }
 
-function getCachedTokens(messageId, lang) {
+function getCache(messageId, lang) {
   const entry = segmentCache.get(`${messageId}:${lang}`);
   if (!entry) return null;
   if (Date.now() - entry.createdAt > CACHE_TTL) {
     segmentCache.delete(`${messageId}:${lang}`);
     return null;
   }
-  return entry.tokens;
+  return entry;
 }
 
-module.exports = { segment, cacheTokens, getCachedTokens };
+function getCachedTokens(messageId, lang) {
+  return getCache(messageId, lang)?.tokens || null;
+}
+
+module.exports = { segment, cacheTokens, getCache, getCachedTokens };

@@ -1,6 +1,7 @@
 const commands = require('../commands');
 const { handleWordSelect } = require('../interactions/lookupButtons');
 const { handleLangSelect } = require('../interactions/lookupSelectMenu');
+const { handleInlineLookup } = require('../interactions/lookupInline');
 
 function errorHandler(label) {
   return async (interaction, err) => {
@@ -28,13 +29,25 @@ module.exports = async (interaction) => {
     return;
   }
 
+  // 按鈕互動
+  if (interaction.isButton()) {
+    try {
+      if (interaction.customId.startsWith('wlt:')) {
+        await handleInlineLookup(interaction);
+      } else if (interaction.customId.startsWith('wlw:')) {
+        await handleWordSelect(interaction);
+      }
+    } catch (err) {
+      await errorHandler('查詞按鈕處理')(interaction, err);
+    }
+    return;
+  }
+
   // Select Menu 互動
   if (interaction.isStringSelectMenu()) {
     try {
       if (interaction.customId.startsWith('wls:')) {
         await handleLangSelect(interaction);
-      } else if (interaction.customId.startsWith('wlw:')) {
-        await handleWordSelect(interaction);
       }
     } catch (err) {
       await errorHandler('查詞選單處理')(interaction, err);

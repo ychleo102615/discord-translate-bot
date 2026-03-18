@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { detect, translate } = require('../translate');
 const { isChannelEnabled, getGuildConfig, isRomanizationEnabled } = require('../serverConfig');
 const { formatWithRomanization } = require('../romanize/index');
@@ -58,7 +58,23 @@ module.exports = async (message) => {
       .addFields(fields)
       .setFooter({ text: `用量：${usage.totalChars.toLocaleString()} 字元` });
 
-    await message.reply({ embeds: [embed] });
+    // 查詞按鈕：原文國旗 + 各翻譯語言國旗
+    const buttons = [
+      new ButtonBuilder()
+        .setCustomId(`wlt:orig:${sourceLang}`)
+        .setLabel(getFlag(sourceLang))
+        .setStyle(ButtonStyle.Secondary),
+      ...translations.map(({ lang }, idx) =>
+        new ButtonBuilder()
+          .setCustomId(`wlt:f${idx}:${lang}`)
+          .setLabel(getFlag(lang))
+          .setStyle(ButtonStyle.Secondary)
+      ),
+    ];
+
+    const row = new ActionRowBuilder().addComponents(buttons);
+
+    await message.reply({ embeds: [embed], components: [row] });
 
     if (usage.limitReached) {
       await message.channel.send('⚠️ 翻譯用量已達本月上限，後續訊息將不再自動翻譯。請等待下月自動重置，或由管理員執行 `/usage reset`。');

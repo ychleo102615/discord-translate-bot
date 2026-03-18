@@ -1,4 +1,6 @@
 {
   "_flag": "🇨🇳",
-  "_fallback": "zh-TW"
+  "_fallback": "zh-TW",
+  "lang_name.zh": "中文",
+  "lang_name.zh-CN": "简体中文"
 }

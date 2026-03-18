@@ -1,7 +1,7 @@
 const { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const { detect } = require('../translate');
 const { segment, cacheTokens } = require('../segment/index');
-const { t, resolveLocale, getFlag, getLangName, getLangCode } = require('../i18n');
+const { t, resolveLocale, getFlag, getNativeName, getLangCode } = require('../i18n');
 
 const MAX_BUTTONS = 25; // 按鈕模式上限
 const PAGE_SIZE = 25;   // 選單模式每頁詞數
@@ -91,8 +91,8 @@ async function handleTranslateEmbed(interaction, targetMessage, locale) {
       const code = opt.value.split(':')[1];
       return {
         label: opt.value.startsWith('orig:')
-          ? t('lookup.original_label', locale, { lang: getLangName(code, locale) })
-          : `${getFlag(code)} ${getLangName(code, locale)}`,
+          ? t('lookup.original_label', locale, { lang: getNativeName(code) })
+          : `${getFlag(code)} ${getNativeName(code)}`,
         value: opt.value,
       };
     }));

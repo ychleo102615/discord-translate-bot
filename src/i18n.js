@@ -72,6 +72,11 @@ function getLangName(code, locale = DEFAULT_LOCALE) {
   return t(`lang_name.${code}`, locale);
 }
 
+/** 取得語言的自稱名稱（endonym），例如 English、日本語、한국어 */
+function getNativeName(code) {
+  return t(`lang_name.${code}`, code);
+}
+
 /** 搜尋所有 locale 的 lang_name.* 值，反查語言代碼 */
 function getLangCode(name) {
   for (const data of Object.values(locales)) {
@@ -91,5 +96,6 @@ module.exports = {
   getSupportedLanguages,
   getFlag,
   getLangName,
+  getNativeName,
   getLangCode,
 };

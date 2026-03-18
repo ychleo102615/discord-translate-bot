@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { getUserLanguage, setUserLanguage } = require('../userPrefs');
-const { t, resolveLocale, getSupportedLanguages, getLangName } = require('../i18n');
+const { t, resolveLocale, getSupportedLanguages, getNativeName } = require('../i18n');
 
 const langChoices = getSupportedLanguages().map(code => ({
-  name: `${getLangName(code)} (${code})`,
+  name: `${getNativeName(code)} (${code})`,
   value: code,
 }));
 
@@ -33,14 +33,15 @@ async function execute(interaction) {
     const lang = interaction.options.getString('language');
     setUserLanguage(interaction.user.id, lang);
     await interaction.reply({
-      content: t('mylang.set_success', locale, { name: getLangName(lang, locale), code: lang }),
+      content: t('mylang.set_success', lang, { name: getNativeName(lang), code: lang }),
       ephemeral: true,
     });
+    return;
   } else if (sub === 'show') {
     const lang = getUserLanguage(interaction.user.id);
     if (lang) {
       await interaction.reply({
-        content: t('mylang.show_current', locale, { name: getLangName(lang, locale), code: lang }),
+        content: t('mylang.show_current', locale, { name: getNativeName(lang), code: lang }),
         ephemeral: true,
       });
     } else {

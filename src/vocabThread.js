@@ -74,11 +74,20 @@ async function _findOrCreate(channel, user, key, locale) {
   }
 
   const threadName = t('vocab.thread_name', locale, { name: user.displayName || user.username });
-  const thread = await channel.threads.create({
-    name: threadName,
-    type: ChannelType.PublicThread,
-    reason: 'Vocab Thread',
-  });
+  let thread;
+  try {
+    thread = await channel.threads.create({
+      name: threadName,
+      type: ChannelType.PrivateThread,
+      reason: 'Vocab Thread',
+    });
+  } catch {
+    thread = await channel.threads.create({
+      name: threadName,
+      type: ChannelType.PublicThread,
+      reason: 'Vocab Thread',
+    });
+  }
 
   data[key] = thread.id;
   saveThreads(data);

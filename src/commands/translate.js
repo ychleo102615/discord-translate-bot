@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { translate, detect } = require('../translate');
 const { tryAddChars } = require('../usageTracker');
+const { isRomanizationEnabled } = require('../serverConfig');
+const { formatWithRomanization } = require('../romanize/index');
 
 const truncate = (s, max = 1024) => (s.length > max ? s.slice(0, max - 3) + '...' : s);
 
@@ -30,12 +32,15 @@ module.exports = {
     try {
       const [sourceLang, result] = await Promise.all([detect(text), translate(text, lang)]);
 
+      const romanEnabled = interaction.guildId ? isRomanizationEnabled(interaction.guildId) : false;
+      const originalValue = romanEnabled ? await formatWithRomanization(text, sourceLang) : text;
+      const translatedValue = (romanEnabled && result) ? await formatWithRomanization(result, lang) : (result || '（翻譯結果為空）');
       const embed = new EmbedBuilder()
         .setTitle('🌐 翻譯結果')
         .setColor(0x5865f2)
         .addFields(
-          { name: `原文 (${sourceLang})`, value: truncate(text) },
-          { name: `翻譯 (${lang})`, value: truncate(result || '（翻譯結果為空）') }
+          { name: `原文 (${sourceLang})`, value: truncate(originalValue) },
+          { name: `翻譯 (${lang})`, value: truncate(translatedValue) }
         );
 
       await interaction.editReply({ embeds: [embed] });

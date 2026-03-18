@@ -24,7 +24,7 @@ function saveConfig(config) {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
-const DEFAULT_GUILD_CONFIG = { enabledChannels: [], targetLanguages: [] };
+const DEFAULT_GUILD_CONFIG = { enabledChannels: [], targetLanguages: [], showRomanization: false };
 
 function getGuildConfig(guildId) {
   const config = loadConfig();
@@ -78,6 +78,18 @@ function isChannelEnabled(guildId, channelId) {
   return guildConfig.enabledChannels.includes(channelId);
 }
 
+function setRomanization(guildId, enabled) {
+  const config = loadConfig();
+  if (!config[guildId]) config[guildId] = { enabledChannels: [], targetLanguages: [], showRomanization: false };
+  config[guildId].showRomanization = enabled;
+  saveConfig(config);
+}
+
+function isRomanizationEnabled(guildId) {
+  const guildConfig = getGuildConfig(guildId);
+  return guildConfig.showRomanization === true;
+}
+
 module.exports = {
   getGuildConfig,
   addLanguage,
@@ -85,4 +97,6 @@ module.exports = {
   enableChannel,
   disableChannel,
   isChannelEnabled,
+  setRomanization,
+  isRomanizationEnabled,
 };

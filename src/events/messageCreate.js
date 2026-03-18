@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const { detect, translate } = require('../translate');
-const { isChannelEnabled, getGuildConfig } = require('../serverConfig');
+const { isChannelEnabled, getGuildConfig, isRomanizationEnabled } = require('../serverConfig');
+const { formatWithRomanization } = require('../romanize/index');
 const { tryAddChars } = require('../usageTracker');
 
 const LANG_FLAGS = {
@@ -78,17 +79,24 @@ module.exports = async (message) => {
       })
     );
 
-    const description = truncate(`**原文 (${sourceLang})：** ${message.content}`, 4096);
+    const romanEnabled = isRomanizationEnabled(guildId);
+    const originalText = romanEnabled
+      ? await formatWithRomanization(message.content, sourceLang, 4000)
+      : message.content;
+    const description = truncate(`**原文 (${sourceLang})：** ${originalText}`, 4096);
+
+    const fields = await Promise.all(
+      translations.map(async ({ lang, result }) => ({
+        name: `${getFlag(lang)} ${getLangName(lang)}`,
+        value: truncate((romanEnabled && result) ? await formatWithRomanization(result, lang) : (result || '（翻譯結果為空）')),
+      }))
+    );
+
     const embed = new EmbedBuilder()
       .setTitle('🌐 翻譯')
       .setColor(0x5865f2)
       .setDescription(description)
-      .addFields(
-        translations.map(({ lang, result }) => ({
-          name: `${getFlag(lang)} ${getLangName(lang)}`,
-          value: truncate(result || '（翻譯結果為空）'),
-        }))
-      )
+      .addFields(fields)
       .setFooter({ text: `用量：${usage.totalChars.toLocaleString()} 字元` });
 
     await message.reply({ embeds: [embed] });

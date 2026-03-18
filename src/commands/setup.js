@@ -1,9 +1,9 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { addLanguage, removeLanguage, enableChannel, disableChannel, getGuildConfig, setRomanization, isRomanizationEnabled } = require('../serverConfig');
-const { t, resolveLocale, getSupportedLanguages, getLangName } = require('../i18n');
+const { t, resolveLocale, getSupportedLanguages, getNativeName } = require('../i18n');
 
 const langChoices = getSupportedLanguages().map(code => ({
-  name: `${getLangName(code)} (${code})`,
+  name: `${getNativeName(code)} (${code})`,
   value: code,
 }));
 

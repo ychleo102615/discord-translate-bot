@@ -3,7 +3,7 @@ const { detect, translate } = require('../translate');
 const { isChannelEnabled, getGuildConfig, isRomanizationEnabled } = require('../serverConfig');
 const { formatWithRomanization } = require('../romanize/index');
 const { tryAddChars } = require('../usageTracker');
-const { t, resolveLocaleForGuild, getFlag, getLangName } = require('../i18n');
+const { t, resolveLocaleForGuild, getFlag, getNativeName } = require('../i18n');
 
 const truncate = (s, max = 1024) => (s.length > max ? s.slice(0, max - 3) + '...' : s);
 
@@ -48,7 +48,7 @@ module.exports = async (message) => {
 
     const fields = await Promise.all(
       translations.map(async ({ lang, result }) => ({
-        name: `${getFlag(lang)} ${getLangName(lang, locale)}`,
+        name: `${getFlag(lang)} ${getNativeName(lang)}`,
         value: truncate((romanEnabled && result) ? await formatWithRomanization(result, lang) : (result || t('translate.empty_result', locale))),
       }))
     );

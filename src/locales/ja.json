@@ -26,7 +26,7 @@
   "common.usage_limit_warning": "⚠️ 今月の翻訳上限に達しました。自動翻訳は一時停止されます。来月のリセットをお待ちいただくか、管理者に `/usage reset` の実行をご依頼ください。",
 
   "auto.title": "🌐 翻訳",
-  "auto.original": "**原文 ({lang})：** {text}",
+  "auto.original": "**⭐ {flag} ({lang})：** {text}",
   "auto.footer": "使用量：{chars} 文字",
 
   "setup.lang_added": "✅ 翻訳先言語を追加しました：`{lang}`",

@@ -26,7 +26,7 @@
   "common.usage_limit_warning": "⚠️ Monthly translation limit reached. Auto-translation is paused. Please wait for the next monthly reset, or ask an admin to run `/usage reset`.",
 
   "auto.title": "🌐 Translation",
-  "auto.original": "**Original ({lang}):** {text}",
+  "auto.original": "**⭐ {flag} ({lang})：** {text}",
   "auto.footer": "Usage: {chars} chars",
 
   "setup.lang_added": "✅ Added target language: `{lang}`",

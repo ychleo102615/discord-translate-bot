@@ -26,7 +26,7 @@
   "common.usage_limit_warning": "⚠️ 翻譯用量已達本月上限，後續訊息將不再自動翻譯。請等待下月自動重置，或由管理員執行 `/usage reset`。",
 
   "auto.title": "🌐 翻譯",
-  "auto.original": "**原文 ({lang})：** {text}",
+  "auto.original": "**⭐ {flag} ({lang})：** {text}",
   "auto.footer": "用量：{chars} 字元",
 
   "setup.lang_added": "✅ 已新增目標語言：`{lang}`",

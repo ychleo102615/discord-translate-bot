@@ -44,7 +44,7 @@ module.exports = async (message) => {
     const originalText = romanEnabled
       ? await formatWithRomanization(message.content, sourceLang, 4000)
       : message.content;
-    const description = truncate(t('auto.original', locale, { lang: sourceLang, text: originalText }), 4096);
+    const description = truncate(t('auto.original', locale, { flag: getFlag(sourceLang), lang: sourceLang, text: originalText }), 4096);
 
     const fields = await Promise.all(
       translations.map(async ({ lang, result }) => ({
@@ -54,7 +54,7 @@ module.exports = async (message) => {
     );
 
     const embed = new EmbedBuilder()
-      .setTitle(t('auto.title', locale))
+      .setTitle(t('auto.title', sourceLang))
       .setColor(0x5865f2)
       .setDescription(description)
       .addFields(fields)

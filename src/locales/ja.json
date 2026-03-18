@@ -82,6 +82,10 @@
   "lookup.parse_failed": "キャッシュデータの解析に失敗しました。もう一度「查詞」を実行してください。",
   "lookup.text_not_found": "対応するテキストが見つかりません。",
   "lookup.result": "📖 **{word}** → {translation}　[単語帳]({url})",
+  "lookup.select_word": "調べる単語を選択",
+  "lookup.page_prev": "◀ 前へ",
+  "lookup.page_next": "次へ ▶",
+  "lookup.page_indicator": "{current} / {total}",
 
   "vocab.thread_name": "📖 {name} の単語帳",
   "vocab.pos_label": "品詞：",

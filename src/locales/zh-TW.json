@@ -82,6 +82,10 @@
   "lookup.parse_failed": "解析快取資料失敗，請重新執行「查詞」。",
   "lookup.text_not_found": "找不到對應的文字。",
   "lookup.result": "📖 **{word}** → {translation}　[詞彙本]({url})",
+  "lookup.select_word": "選擇要查詢的單字",
+  "lookup.page_prev": "◀ 上一頁",
+  "lookup.page_next": "下一頁 ▶",
+  "lookup.page_indicator": "{current} / {total}",
 
   "vocab.thread_name": "📖 {name} 的詞彙本",
   "vocab.pos_label": "詞性：",

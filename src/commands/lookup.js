@@ -3,7 +3,8 @@ const { detect } = require('../translate');
 const { segment, cacheTokens } = require('../segment/index');
 const { t, resolveLocale, getFlag, getLangName, getLangCode } = require('../i18n');
 
-const MAX_BUTTONS = 25; // Discord 按鈕上限
+const MAX_BUTTONS = 25; // 按鈕模式上限
+const PAGE_SIZE = 25;   // 選單模式每頁詞數
 
 const data = new ContextMenuCommandBuilder()
   .setName('查詞')
@@ -100,19 +101,23 @@ async function handleTranslateEmbed(interaction, targetMessage, locale) {
   await interaction.editReply({ content: t('lookup.select_prompt', locale), components: [row] });
 }
 
-// selected: Set of indices already looked up; results: array of result lines
-function buildWordPayload(tokens, langCode, messageId, selected = new Set(), results = [], locale = 'zh-TW') {
-  // 去重 + 排除已選
+// 去重邏輯，回傳 [{ token, index }]
+function dedupeTokens(tokens, selected = new Set()) {
   const seen = new Set();
-  const availableEntries = [];
+  const entries = [];
   for (const token of tokens) {
     const idx = tokens.indexOf(token);
     if (!seen.has(token.word) && !selected.has(idx)) {
       seen.add(token.word);
-      availableEntries.push({ token, index: idx });
+      entries.push({ token, index: idx });
     }
   }
+  return entries;
+}
 
+// selected: Set of indices already looked up; results: array of result lines
+function buildWordPayload(tokens, langCode, messageId, selected = new Set(), results = [], locale = 'zh-TW') {
+  const availableEntries = dedupeTokens(tokens, selected);
   const content = results.length > 0 ? results.join('\n') : '';
 
   // 所有按鈕都已點完，或沒有剩餘單字
@@ -120,14 +125,16 @@ function buildWordPayload(tokens, langCode, messageId, selected = new Set(), res
     return { content: content || t('lookup.all_done', locale), components: [] };
   }
 
-  const displayEntries = availableEntries.slice(0, MAX_BUTTONS);
-  const truncated = availableEntries.length > MAX_BUTTONS;
+  // >25 詞：切換為 SelectMenu + 翻頁按鈕
+  if (availableEntries.length > MAX_BUTTONS) {
+    return buildPagedPayload(availableEntries, langCode, messageId, 0, locale, content);
+  }
 
-  // 建立按鈕（每行最多 5 個）
+  // ≤25 詞：維持按鈕模式
   const rows = [];
-  for (let i = 0; i < displayEntries.length; i += 5) {
+  for (let i = 0; i < availableEntries.length; i += 5) {
     const row = new ActionRowBuilder();
-    const chunk = displayEntries.slice(i, i + 5);
+    const chunk = availableEntries.slice(i, i + 5);
     chunk.forEach(({ token, index }) => {
       row.addComponents(
         new ButtonBuilder()
@@ -139,10 +146,49 @@ function buildWordPayload(tokens, langCode, messageId, selected = new Set(), res
     rows.push(row);
   }
 
-  let header = content;
-  if (truncated) header += '\n' + t('lookup.truncated', locale, { max: MAX_BUTTONS });
+  return { content: content || '\u200b', components: rows };
+}
 
-  return { content: header || '\u200b', components: rows };
+// SelectMenu + 翻頁按鈕模式
+function buildPagedPayload(entries, langCode, messageId, page, locale, headerContent = '') {
+  const totalPages = Math.ceil(entries.length / PAGE_SIZE);
+  const pageEntries = entries.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  // SelectMenu options
+  const selectMenu = new StringSelectMenuBuilder()
+    .setCustomId(`wlm:${messageId}:${langCode}:${page}`)
+    .setPlaceholder(t('lookup.select_word', locale))
+    .addOptions(pageEntries.map(({ token, index }) => {
+      const option = { label: token.word.slice(0, 100), value: String(index) };
+      if (token.pos) option.description = token.pos;
+      return option;
+    }));
+
+  const selectRow = new ActionRowBuilder().addComponents(selectMenu);
+
+  // 翻頁按鈕列
+  const paginationRow = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`wlp:${messageId}:${langCode}:${page - 1}`)
+      .setLabel(t('lookup.page_prev', locale))
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page === 0),
+    new ButtonBuilder()
+      .setCustomId(`wli:${messageId}`)
+      .setLabel(t('lookup.page_indicator', locale, { current: page + 1, total: totalPages }))
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(true),
+    new ButtonBuilder()
+      .setCustomId(`wlp:${messageId}:${langCode}:${page + 1}`)
+      .setLabel(t('lookup.page_next', locale))
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(page >= totalPages - 1),
+  );
+
+  return {
+    content: headerContent || '\u200b',
+    components: [selectRow, paginationRow],
+  };
 }
 
 async function buildWordMenu(text, langCode, messageId, locale = 'zh-TW') {
@@ -161,4 +207,4 @@ async function sendWordMenu(interaction, text, langCode, messageId, locale) {
   await interaction.editReply(payload);
 }
 
-module.exports = { data, execute, buildWordMenu, buildWordPayload, parseTranslateEmbed };
+module.exports = { data, execute, buildWordMenu, buildWordPayload, buildPagedPayload, dedupeTokens, parseTranslateEmbed };

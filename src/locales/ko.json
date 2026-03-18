@@ -82,6 +82,10 @@
   "lookup.parse_failed": "캐시 데이터 분석에 실패했습니다. 「查詞」를 다시 실행해 주세요.",
   "lookup.text_not_found": "해당 텍스트를 찾을 수 없습니다.",
   "lookup.result": "📖 **{word}** → {translation}　[단어장]({url})",
+  "lookup.select_word": "조회할 단어를 선택",
+  "lookup.page_prev": "◀ 이전",
+  "lookup.page_next": "다음 ▶",
+  "lookup.page_indicator": "{current} / {total}",
 
   "vocab.thread_name": "📖 {name}의 단어장",
   "vocab.pos_label": "품사: ",

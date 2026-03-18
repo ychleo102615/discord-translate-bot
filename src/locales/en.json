@@ -82,6 +82,10 @@
   "lookup.parse_failed": "Failed to parse cached data. Please run Look Up again.",
   "lookup.text_not_found": "Corresponding text not found.",
   "lookup.result": "📖 **{word}** → {translation}　[Vocab]({url})",
+  "lookup.select_word": "Select a word to look up",
+  "lookup.page_prev": "◀ Prev",
+  "lookup.page_next": "Next ▶",
+  "lookup.page_indicator": "{current} / {total}",
 
   "vocab.thread_name": "📖 {name}'s Vocabulary",
   "vocab.pos_label": "POS: ",

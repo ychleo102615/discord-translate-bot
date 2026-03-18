@@ -1,5 +1,5 @@
 const commands = require('../commands');
-const { handleWordSelect } = require('../interactions/lookupButtons');
+const { handleWordSelect, handleWordMenuSelect, handlePageNav } = require('../interactions/lookupButtons');
 const { handleLangSelect } = require('../interactions/lookupSelectMenu');
 const { handleInlineLookup } = require('../interactions/lookupInline');
 const { t, resolveLocale } = require('../i18n');
@@ -38,6 +38,8 @@ module.exports = async (interaction) => {
         await handleInlineLookup(interaction);
       } else if (interaction.customId.startsWith('wlw:')) {
         await handleWordSelect(interaction);
+      } else if (interaction.customId.startsWith('wlp:')) {
+        await handlePageNav(interaction);
       }
     } catch (err) {
       await errorHandler('查詞按鈕處理')(interaction, err);
@@ -50,6 +52,8 @@ module.exports = async (interaction) => {
     try {
       if (interaction.customId.startsWith('wls:')) {
         await handleLangSelect(interaction);
+      } else if (interaction.customId.startsWith('wlm:')) {
+        await handleWordMenuSelect(interaction);
       }
     } catch (err) {
       await errorHandler('查詞選單處理')(interaction, err);

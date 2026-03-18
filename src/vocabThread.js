@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const { romanize } = require('./romanize/index');
+const { t } = require('./i18n');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const THREADS_PATH = path.join(DATA_DIR, 'vocabThreads.json');
@@ -33,7 +34,7 @@ function threadKey(channelId, userId) {
 // 防止同一 key 同時建立多個 Thread 的 race condition
 const pendingCreations = new Map();
 
-async function findOrCreateVocabThread(channel, user) {
+async function findOrCreateVocabThread(channel, user, locale) {
   // Thread 頻道不支援 threads.create()，需退回到父頻道
   const parentChannel = channel.isThread?.() ? channel.parent : channel;
   if (!parentChannel) {
@@ -47,14 +48,14 @@ async function findOrCreateVocabThread(channel, user) {
     return pendingCreations.get(key);
   }
 
-  const promise = _findOrCreate(parentChannel, user, key).finally(() => {
+  const promise = _findOrCreate(parentChannel, user, key, locale).finally(() => {
     pendingCreations.delete(key);
   });
   pendingCreations.set(key, promise);
   return promise;
 }
 
-async function _findOrCreate(channel, user, key) {
+async function _findOrCreate(channel, user, key, locale) {
   const data = loadThreads();
   const existingId = data[key];
 
@@ -72,11 +73,11 @@ async function _findOrCreate(channel, user, key) {
     }
   }
 
-  const threadName = `📖 ${user.displayName || user.username} 的詞彙本`;
+  const threadName = t('vocab.thread_name', locale, { name: user.displayName || user.username });
   const thread = await channel.threads.create({
     name: threadName,
     type: ChannelType.PublicThread,
-    reason: '詞彙本 Thread',
+    reason: 'Vocab Thread',
   });
 
   data[key] = thread.id;
@@ -103,15 +104,15 @@ function getDictionaryLinks(word, langCode) {
   }
 }
 
-async function postVocabEntry(thread, { word, lemma, pos, langCode, translation, targetLang, messageUrl }) {
+async function postVocabEntry(thread, { word, lemma, pos, langCode, translation, targetLang, messageUrl }, locale) {
   const romanized = await romanize(word, langCode);
 
   const lines = [`📖 **${word}**`];
   if (romanized) lines.push(`> *${romanized}*`);
   lines.push('────────');
-  if (pos) lines.push(`**詞性：**${pos}`);
-  lines.push(`**翻譯(${targetLang})：**${translation}`);
-  if (messageUrl) lines.push(`**原始訊息：**[跳至原文](${messageUrl})`);
+  if (pos) lines.push(`**${t('vocab.pos_label', locale)}**${t(`pos.${pos}`, locale)}`);
+  lines.push(`**${t('vocab.translation_label', locale, { lang: targetLang })}**${translation}`);
+  if (messageUrl) lines.push(`**${t('vocab.source_link', locale)}**[↗](${messageUrl})`);
   lines.push(`🔗 ${getDictionaryLinks(lemma || word, langCode)}`);
 
   const embed = new EmbedBuilder()

@@ -1,6 +1,11 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { getUserLanguage, setUserLanguage } = require('../userPrefs');
-const { LANG_NAMES, getLangName } = require('../languages');
+const { t, resolveLocale, getSupportedLanguages, getLangName } = require('../i18n');
+
+const langChoices = getSupportedLanguages().map(code => ({
+  name: `${getLangName(code)} (${code})`,
+  value: code,
+}));
 
 const data = new SlashCommandBuilder()
   .setName('my-language')
@@ -12,12 +17,7 @@ const data = new SlashCommandBuilder()
         opt.setName('language')
           .setDescription('語言代碼（如 zh-TW, en, ja）')
           .setRequired(true)
-          .addChoices(
-            ...Object.entries(LANG_NAMES).map(([code, name]) => ({
-              name: `${name} (${code})`,
-              value: code,
-            }))
-          )
+          .addChoices(...langChoices)
       )
   )
   .addSubcommand(sub =>
@@ -27,24 +27,25 @@ const data = new SlashCommandBuilder()
 
 async function execute(interaction) {
   const sub = interaction.options.getSubcommand();
+  const locale = resolveLocale(interaction);
 
   if (sub === 'set') {
     const lang = interaction.options.getString('language');
     setUserLanguage(interaction.user.id, lang);
     await interaction.reply({
-      content: `已將你的偏好語言設為 **${getLangName(lang)}** (${lang})`,
+      content: t('mylang.set_success', locale, { name: getLangName(lang, locale), code: lang }),
       ephemeral: true,
     });
   } else if (sub === 'show') {
     const lang = getUserLanguage(interaction.user.id);
     if (lang) {
       await interaction.reply({
-        content: `你目前的偏好語言：**${getLangName(lang)}** (${lang})`,
+        content: t('mylang.show_current', locale, { name: getLangName(lang, locale), code: lang }),
         ephemeral: true,
       });
     } else {
       await interaction.reply({
-        content: '你尚未設定偏好語言。使用 `/my-language set` 來設定。',
+        content: t('mylang.not_set', locale),
         ephemeral: true,
       });
     }

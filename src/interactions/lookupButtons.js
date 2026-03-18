@@ -3,6 +3,7 @@ const { translate } = require('../translate');
 const { getUserLanguage } = require('../userPrefs');
 const { getGuildConfig } = require('../serverConfig');
 const { findOrCreateVocabThread, postVocabEntry } = require('../vocabThread');
+const { t, resolveLocale } = require('../i18n');
 
 async function handleWordSelect(interaction) {
   // customId 格式：wlw:{messageId}:{lang}:{wordIndex}
@@ -11,17 +12,18 @@ async function handleWordSelect(interaction) {
 
   const [, messageId, langCode, indexStr] = parts;
   const wordIndex = parseInt(indexStr, 10);
+  const locale = resolveLocale(interaction);
 
   await interaction.deferUpdate();
 
   const cache = getCache(messageId, langCode);
   if (!cache) {
-    return interaction.followUp({ ephemeral: true, content: '⏰ 快取已過期，請重新執行「查詞」。' });
+    return interaction.followUp({ ephemeral: true, content: t('lookup.cache_expired', locale) });
   }
 
   const token = cache.tokens[wordIndex];
   if (!token) {
-    return interaction.followUp({ ephemeral: true, content: '找不到該詞彙，請重新執行「查詞」。' });
+    return interaction.followUp({ ephemeral: true, content: t('lookup.word_not_found', locale) });
   }
 
   const targetLang = resolveTargetLang(interaction);
@@ -29,7 +31,7 @@ async function handleWordSelect(interaction) {
 
   const channel = interaction.channel;
   if (!channel) {
-    return interaction.followUp({ ephemeral: true, content: '無法取得頻道資訊，請稍後再試。' });
+    return interaction.followUp({ ephemeral: true, content: t('lookup.no_channel', locale) });
   }
 
   // 取得原始訊息連結
@@ -42,7 +44,7 @@ async function handleWordSelect(interaction) {
   }
 
   // 發佈到詞彙本 Thread
-  const thread = await findOrCreateVocabThread(channel, interaction.user);
+  const thread = await findOrCreateVocabThread(channel, interaction.user, locale);
   await postVocabEntry(thread, {
     word: token.word,
     lemma: token.lemma,
@@ -51,10 +53,10 @@ async function handleWordSelect(interaction) {
     translation,
     targetLang,
     messageUrl,
-  });
+  }, locale);
 
   await interaction.editReply({
-    content: `📖 **${token.word}** → ${translation}　[詞彙本](${thread.url})`,
+    content: t('lookup.result', locale, { word: token.word, translation, url: thread.url }),
     components: [],
   });
 }

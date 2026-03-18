@@ -4,23 +4,6 @@ const language = require('@google-cloud/language');
 
 const client = new language.LanguageServiceClient();
 
-// Google NL API POS tag 對照表（簡化版）
-const POS_MAP = {
-  ADJ: '形容詞',
-  ADP: '介詞',
-  ADV: '副詞',
-  CONJ: '連接詞',
-  DET: '限定詞',
-  NOUN: '名詞',
-  NUM: '數詞',
-  PRON: '代名詞',
-  PRT: '助詞',
-  PUNCT: '標點',
-  VERB: '動詞',
-  X: '其他',
-  AFFIX: '詞綴',
-};
-
 async function segment(text, lang) {
   const document = {
     content: text,
@@ -36,7 +19,7 @@ async function segment(text, lang) {
     .map(t => ({
       word: t.text?.content || '',
       lemma: t.lemma || t.text?.content || '',
-      pos: POS_MAP[t.partOfSpeech?.tag] || null,
+      pos: t.partOfSpeech?.tag || null,
     }))
     .filter(t => t.word.length > 0);
 }

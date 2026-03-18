@@ -1,13 +1,15 @@
 const { parseTranslateEmbed, buildWordMenu } = require('../commands/lookup');
+const { t, resolveLocale } = require('../i18n');
 
 async function handleInlineLookup(interaction) {
   // customId 格式：wlt:{value} 如 wlt:orig:ja 或 wlt:f0:en
   // 直接從 interaction.message 讀 embed，不需快取
   await interaction.deferReply({ ephemeral: true });
 
+  const locale = resolveLocale(interaction);
   const embed = interaction.message?.embeds?.[0];
   if (!embed) {
-    return interaction.editReply({ content: '無法解析此翻譯訊息。' });
+    return interaction.editReply({ content: t('lookup.cannot_parse', locale) });
   }
 
   // 從 customId 取出 value（去掉 wlt: 前綴）
@@ -18,13 +20,13 @@ async function handleInlineLookup(interaction) {
   const parsed = parseTranslateEmbed(embed);
   const match = parsed.find(p => p.value === selected);
   if (!match) {
-    return interaction.editReply({ content: '找不到對應的文字。' });
+    return interaction.editReply({ content: t('lookup.text_not_found', locale) });
   }
 
   const messageId = interaction.message.id;
-  const payload = await buildWordMenu(match.text, langCode, messageId);
+  const payload = await buildWordMenu(match.text, langCode, messageId, locale);
   if (!payload) {
-    return interaction.editReply({ content: '無法從此文字中分析出任何詞彙。' });
+    return interaction.editReply({ content: t('lookup.no_tokens', locale) });
   }
   await interaction.editReply(payload);
 }

@@ -1,7 +1,7 @@
-const { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const { detect } = require('../translate');
 const { segment, cacheTokens } = require('../segment/index');
-const { getLangCode, getFlag, getLangName } = require('../languages');
+const { t, resolveLocale, getFlag, getLangName, getLangCode } = require('../i18n');
 
 const MAX_BUTTONS = 25; // Discord 按鈕上限
 
@@ -12,29 +12,32 @@ const data = new ContextMenuCommandBuilder()
 async function execute(interaction) {
   await interaction.deferReply({ ephemeral: true });
 
+  const locale = resolveLocale(interaction);
   const targetMessage = interaction.targetMessage;
 
   // 檢查是否為 bot 自身的翻譯 embed
   if (targetMessage.author.id === interaction.client.user.id && targetMessage.embeds.length > 0) {
-    return handleTranslateEmbed(interaction, targetMessage);
+    return handleTranslateEmbed(interaction, targetMessage, locale);
   }
 
   // 一般訊息：直接斷詞
   const text = targetMessage.content;
   if (!text || text.trim().length === 0) {
-    return interaction.editReply({ content: '此訊息沒有文字內容可供查詞。' });
+    return interaction.editReply({ content: t('lookup.no_text', locale) });
   }
 
   const langCode = await detect(text);
-  return sendWordMenu(interaction, text, langCode, targetMessage.id);
+  return sendWordMenu(interaction, text, langCode, targetMessage.id, locale);
 }
 
 // 從翻譯 embed 解析各語言版本的文字，回傳 [{ value, text }] 或空陣列
+// 使用 locale-agnostic regex 以相容所有語言的 embed 格式
 function parseTranslateEmbed(embed) {
   const results = [];
 
   if (embed.description) {
-    const match = embed.description.match(/\*\*原文 \(([^)]+)\)：\*\* ([\s\S]+)/);
+    // 匹配 **<任意文字> (<langCode>)：** 或 **<任意文字> (<langCode>):** 格式
+    const match = embed.description.match(/\*\*[^(]+\(([^)]+)\)[：:]\*\*\s*([\s\S]+)/);
     if (match) {
       const lang = match[1];
       const rawText = match[2].replace(/\n> \*[^*]+\*$/, '').trim();
@@ -44,14 +47,14 @@ function parseTranslateEmbed(embed) {
 
   if (embed.fields) {
     embed.fields.forEach((field, idx) => {
-      const nameMatch = field.name.match(/^.+\s(.+)$/);
-      if (nameMatch) {
-        const langName = nameMatch[1];
-        const langCode = getLangCode(langName);
-        if (langCode) {
-          const rawText = field.value.replace(/\n> \*[^*]+\*$/, '').trim();
-          results.push({ value: `f${idx}:${langCode}`, text: rawText });
-        }
+      // field name 格式："{flag} {langName}"，取第一個空格之後的全部文字作為語言名稱
+      const spaceIdx = field.name.indexOf(' ');
+      if (spaceIdx === -1) return;
+      const langName = field.name.slice(spaceIdx + 1);
+      const langCode = getLangCode(langName);
+      if (langCode) {
+        const rawText = field.value.replace(/\n> \*[^*]+\*$/, '').trim();
+        results.push({ value: `f${idx}:${langCode}`, text: rawText });
       }
     });
   }
@@ -59,20 +62,20 @@ function parseTranslateEmbed(embed) {
   return results;
 }
 
-async function handleTranslateEmbed(interaction, targetMessage) {
+async function handleTranslateEmbed(interaction, targetMessage, locale) {
   const embed = targetMessage.embeds[0];
   if (!embed) {
-    return interaction.editReply({ content: '無法解析此 embed。' });
+    return interaction.editReply({ content: t('lookup.cannot_parse', locale) });
   }
 
   const options = parseTranslateEmbed(embed);
 
   if (options.length === 0) {
-    return interaction.editReply({ content: '無法從此翻譯訊息中提取文字。' });
+    return interaction.editReply({ content: t('lookup.cannot_extract', locale) });
   }
 
   if (options.length === 1) {
-    return sendWordMenu(interaction, options[0].text, options[0].value.split(':')[1], targetMessage.id);
+    return sendWordMenu(interaction, options[0].text, options[0].value.split(':')[1], targetMessage.id, locale);
   }
 
   // 多個版本，顯示 Select Menu 讓使用者選擇
@@ -82,18 +85,23 @@ async function handleTranslateEmbed(interaction, targetMessage) {
 
   const selectMenu = new StringSelectMenuBuilder()
     .setCustomId(`wls:${targetMessage.id}`)
-    .setPlaceholder('選擇要查詞的版本')
-    .addOptions(options.map(opt => ({
-      label: opt.value.startsWith('orig:') ? `原文 (${getLangName(opt.value.split(':')[1])})` : `${getFlag(opt.value.split(':')[1])} ${getLangName(opt.value.split(':')[1])}`,
-      value: opt.value,
-    })));
+    .setPlaceholder(t('lookup.select_placeholder', locale))
+    .addOptions(options.map(opt => {
+      const code = opt.value.split(':')[1];
+      return {
+        label: opt.value.startsWith('orig:')
+          ? t('lookup.original_label', locale, { lang: getLangName(code, locale) })
+          : `${getFlag(code)} ${getLangName(code, locale)}`,
+        value: opt.value,
+      };
+    }));
 
   const row = new ActionRowBuilder().addComponents(selectMenu);
-  await interaction.editReply({ content: '請選擇要查詞的版本：', components: [row] });
+  await interaction.editReply({ content: t('lookup.select_prompt', locale), components: [row] });
 }
 
 // selected: Set of indices already looked up; results: array of result lines
-function buildWordPayload(tokens, langCode, messageId, selected = new Set(), results = []) {
+function buildWordPayload(tokens, langCode, messageId, selected = new Set(), results = [], locale = 'zh-TW') {
   // 去重 + 排除已選
   const seen = new Set();
   const availableEntries = [];
@@ -109,7 +117,7 @@ function buildWordPayload(tokens, langCode, messageId, selected = new Set(), res
 
   // 所有按鈕都已點完，或沒有剩餘單字
   if (availableEntries.length === 0) {
-    return { content: content || '✅ 所有單字已查詢完畢。', components: [] };
+    return { content: content || t('lookup.all_done', locale), components: [] };
   }
 
   const displayEntries = availableEntries.slice(0, MAX_BUTTONS);
@@ -132,23 +140,23 @@ function buildWordPayload(tokens, langCode, messageId, selected = new Set(), res
   }
 
   let header = content;
-  if (truncated) header += `\n⚠️ 僅顯示前 ${MAX_BUTTONS} 個詞`;
+  if (truncated) header += '\n' + t('lookup.truncated', locale, { max: MAX_BUTTONS });
 
   return { content: header || '\u200b', components: rows };
 }
 
-async function buildWordMenu(text, langCode, messageId) {
+async function buildWordMenu(text, langCode, messageId, locale = 'zh-TW') {
   const tokens = await segment(text, langCode);
   if (tokens.length === 0) return null;
 
   cacheTokens(messageId, langCode, tokens);
-  return buildWordPayload(tokens, langCode, messageId);
+  return buildWordPayload(tokens, langCode, messageId, undefined, undefined, locale);
 }
 
-async function sendWordMenu(interaction, text, langCode, messageId) {
-  const payload = await buildWordMenu(text, langCode, messageId);
+async function sendWordMenu(interaction, text, langCode, messageId, locale) {
+  const payload = await buildWordMenu(text, langCode, messageId, locale);
   if (!payload) {
-    return interaction.editReply({ content: '無法從此訊息中分析出任何詞彙。' });
+    return interaction.editReply({ content: t('lookup.no_tokens', locale) });
   }
   await interaction.editReply(payload);
 }

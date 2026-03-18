@@ -1,9 +1,9 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { addLanguage, removeLanguage, enableChannel, disableChannel, getGuildConfig, setRomanization, isRomanizationEnabled } = require('../serverConfig');
-const { LANG_NAMES } = require('../languages');
+const { t, resolveLocale, getSupportedLanguages, getLangName } = require('../i18n');
 
-const langChoices = Object.entries(LANG_NAMES).map(([code, name]) => ({
-  name: `${name} (${code})`,
+const langChoices = getSupportedLanguages().map(code => ({
+  name: `${getLangName(code)} (${code})`,
   value: code,
 }));
 
@@ -43,50 +43,51 @@ module.exports = {
   async execute(interaction) {
     const sub = interaction.options.getSubcommand();
     const { guildId, channelId } = interaction;
+    const locale = resolveLocale(interaction);
 
     if (sub === 'add') {
       const lang = interaction.options.getString('language');
       const added = addLanguage(guildId, lang);
       await interaction.reply({
-        content: added ? `✅ 已新增目標語言：\`${lang}\`` : `⚠️ 語言 \`${lang}\` 已在清單中。`,
+        content: added ? t('setup.lang_added', locale, { lang }) : t('setup.lang_exists', locale, { lang }),
         ephemeral: true,
       });
     } else if (sub === 'remove') {
       const lang = interaction.options.getString('language');
       const removed = removeLanguage(guildId, lang);
       await interaction.reply({
-        content: removed ? `✅ 已移除目標語言：\`${lang}\`` : `⚠️ 語言 \`${lang}\` 不在清單中。`,
+        content: removed ? t('setup.lang_removed', locale, { lang }) : t('setup.lang_not_found', locale, { lang }),
         ephemeral: true,
       });
     } else if (sub === 'list') {
       const config = getGuildConfig(guildId);
-      const langs = config.targetLanguages.length > 0 ? config.targetLanguages.join(', ') : '（尚未設定）';
+      const langs = config.targetLanguages.length > 0 ? config.targetLanguages.join(', ') : t('setup.no_langs', locale);
       const channels =
         config.enabledChannels.length > 0
           ? config.enabledChannels.map((id) => `<#${id}>`).join(', ')
-          : '（無啟用頻道）';
-      const romanization = isRomanizationEnabled(guildId) ? '✅ 啟用' : '❌ 停用';
+          : t('setup.no_channels', locale);
+      const romanization = isRomanizationEnabled(guildId) ? t('setup.on', locale) : t('setup.off', locale);
       await interaction.reply({
-        content: `**目標語言：** ${langs}\n**啟用頻道：** ${channels}\n**羅馬拼音：** ${romanization}`,
+        content: t('setup.list_title', locale, { langs, channels, romanization }),
         ephemeral: true,
       });
     } else if (sub === 'enable') {
       const enabled = enableChannel(guildId, channelId);
       await interaction.reply({
-        content: enabled ? `✅ 已在本頻道啟用自動翻譯。` : `⚠️ 本頻道已啟用自動翻譯。`,
+        content: enabled ? t('setup.channel_enabled', locale) : t('setup.channel_already_enabled', locale),
         ephemeral: true,
       });
     } else if (sub === 'disable') {
       const disabled = disableChannel(guildId, channelId);
       await interaction.reply({
-        content: disabled ? `✅ 已在本頻道停用自動翻譯。` : `⚠️ 本頻道未啟用自動翻譯。`,
+        content: disabled ? t('setup.channel_disabled', locale) : t('setup.channel_not_enabled', locale),
         ephemeral: true,
       });
     } else if (sub === 'romanization') {
       const enabled = interaction.options.getBoolean('enabled');
       setRomanization(guildId, enabled);
       await interaction.reply({
-        content: enabled ? `✅ 已啟用羅馬拼音顯示。` : `✅ 已停用羅馬拼音顯示。`,
+        content: enabled ? t('setup.romanization_enabled', locale) : t('setup.romanization_disabled', locale),
         ephemeral: true,
       });
     }

@@ -2,11 +2,13 @@ const commands = require('../commands');
 const { handleWordSelect } = require('../interactions/lookupButtons');
 const { handleLangSelect } = require('../interactions/lookupSelectMenu');
 const { handleInlineLookup } = require('../interactions/lookupInline');
+const { t, resolveLocale } = require('../i18n');
 
 function errorHandler(label) {
   return async (interaction, err) => {
     console.error(`[interactionCreate] ${label}失敗：`, err);
-    const msg = { content: '處理時發生錯誤，請稍後再試。', ephemeral: true };
+    const locale = resolveLocale(interaction);
+    const msg = { content: t('common.error', locale), ephemeral: true };
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp(msg);
     } else {

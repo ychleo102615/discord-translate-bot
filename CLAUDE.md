@@ -21,6 +21,9 @@ Discord 翻譯機器人，使用 Google Cloud Translation API 自動翻譯頻道
 
 ### Key modules
 
+- **`src/i18n.js`** — i18n 核心。啟動時自動掃描 `src/locales/*.json` 載入所有 locale。提供 `t(key, locale, params)`、`resolveLocale(interaction)`、`resolveLocaleForGuild(guildId)`、`getSupportedLanguages()`、`getFlag()`、`getLangName()`、`getLangCode()`。Fallback 鏈：locale → _fallback → zh-TW → raw key
+- **`src/locales/*.json`** — 語言定義的唯一來源。檔案名稱 = 語言代碼，自動探索。新增語言只需新增一個 JSON 檔案，不改任何程式碼。`zh-CN.json` 和 `zh.json` 為薄殼，透過 `_fallback` 共用 `zh-TW` 的翻譯
+- **`src/languages.js`** — `i18n.js` 的薄包裝，re-export 語言相關函式
 - **`src/translate.js`** — Google Translate v2 client 包裝（翻譯 + 語言偵測），使用 Service Account 認證（`GOOGLE_APPLICATION_CREDENTIALS`）
 - **`src/serverConfig.js`** — 伺服器級設定的讀寫層，存儲在 `data/config.json`。每個 guild 有獨立的 enabledChannels、targetLanguages、showRomanization 設定
 - **`src/usageTracker.js`** — 全局月度字元用量追蹤，存儲在 `data/usage.json`。`tryAddChars()` 合併檢查+更新為單一操作避免 race condition

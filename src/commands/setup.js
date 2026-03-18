@@ -1,5 +1,11 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { addLanguage, removeLanguage, enableChannel, disableChannel, getGuildConfig, setRomanization, isRomanizationEnabled } = require('../serverConfig');
+const { LANG_NAMES } = require('../languages');
+
+const langChoices = Object.entries(LANG_NAMES).map(([code, name]) => ({
+  name: `${name} (${code})`,
+  value: code,
+}));
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -11,7 +17,7 @@ module.exports = {
         .setName('add')
         .setDescription('新增自動翻譯目標語言')
         .addStringOption((opt) =>
-          opt.setName('language').setDescription('語言代碼（例如：zh-TW, en, ja, ko）').setRequired(true)
+          opt.setName('language').setDescription('語言代碼（例如：zh-TW, en, ja, ko）').setRequired(true).addChoices(...langChoices)
         )
     )
     .addSubcommand((sub) =>
@@ -19,7 +25,7 @@ module.exports = {
         .setName('remove')
         .setDescription('移除自動翻譯目標語言')
         .addStringOption((opt) =>
-          opt.setName('language').setDescription('語言代碼').setRequired(true)
+          opt.setName('language').setDescription('語言代碼').setRequired(true).addChoices(...langChoices)
         )
     )
     .addSubcommand((sub) => sub.setName('list').setDescription('顯示目前設定的目標語言與啟用頻道'))

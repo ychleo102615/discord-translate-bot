@@ -3,48 +3,7 @@ const { detect, translate } = require('../translate');
 const { isChannelEnabled, getGuildConfig, isRomanizationEnabled } = require('../serverConfig');
 const { formatWithRomanization } = require('../romanize/index');
 const { tryAddChars } = require('../usageTracker');
-
-const LANG_FLAGS = {
-  'zh-TW': '🇹🇼',
-  'zh-CN': '🇨🇳',
-  'zh': '🇨🇳',
-  'en': '🇺🇸',
-  'ja': '🇯🇵',
-  'ko': '🇰🇷',
-  'fr': '🇫🇷',
-  'de': '🇩🇪',
-  'es': '🇪🇸',
-  'pt': '🇵🇹',
-  'ru': '🇷🇺',
-  'ar': '🇸🇦',
-  'vi': '🇻🇳',
-  'th': '🇹🇭',
-};
-
-const LANG_NAMES = {
-  'zh-TW': '繁體中文',
-  'zh-CN': '簡體中文',
-  'zh': '中文',
-  'en': '英文',
-  'ja': '日文',
-  'ko': '韓文',
-  'fr': '法文',
-  'de': '德文',
-  'es': '西班牙文',
-  'pt': '葡萄牙文',
-  'ru': '俄文',
-  'ar': '阿拉伯文',
-  'vi': '越南文',
-  'th': '泰文',
-};
-
-function getFlag(lang) {
-  return LANG_FLAGS[lang] || '🌐';
-}
-
-function getLangName(lang) {
-  return LANG_NAMES[lang] || lang;
-}
+const { getFlag, getLangName } = require('../languages');
 
 const truncate = (s, max = 1024) => (s.length > max ? s.slice(0, max - 3) + '...' : s);
 

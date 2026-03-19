@@ -1,4 +1,4 @@
 import 'dotenv/config';
-import { startBot } from './src/bot.js';
+import { startBot } from './src/index.js';
 
 startBot();

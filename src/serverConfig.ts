@@ -1,37 +1,50 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
 
-function ensureDataDir() {
+export interface GuildConfig {
+  enabledChannels: string[];
+  targetLanguages: string[];
+  showRomanization?: boolean;
+}
+
+interface ConfigData {
+  [guildId: string]: GuildConfig;
+}
+
+function ensureDataDir(): void {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function loadConfig() {
+function loadConfig(): ConfigData {
   ensureDataDir();
   if (!fs.existsSync(CONFIG_PATH)) return {};
   try {
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')) as ConfigData;
   } catch (err) {
-    console.warn('[serverConfig] config.json 損毀，重新建立：', err.message);
+    console.warn('[serverConfig] config.json 損毀，重新建立：', (err as Error).message);
     return {};
   }
 }
 
-function saveConfig(config) {
+function saveConfig(config: ConfigData): void {
   ensureDataDir();
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
-const DEFAULT_GUILD_CONFIG = { enabledChannels: [], targetLanguages: [], showRomanization: false };
+const DEFAULT_GUILD_CONFIG: GuildConfig = { enabledChannels: [], targetLanguages: [], showRomanization: false };
 
-function getGuildConfig(guildId) {
+export function getGuildConfig(guildId: string): GuildConfig {
   const config = loadConfig();
   return config[guildId] || DEFAULT_GUILD_CONFIG;
 }
 
-function addLanguage(guildId, lang) {
+export function addLanguage(guildId: string, lang: string): boolean {
   const config = loadConfig();
   if (!config[guildId]) config[guildId] = { enabledChannels: [], targetLanguages: [] };
   if (!config[guildId].targetLanguages.includes(lang)) {
@@ -42,7 +55,7 @@ function addLanguage(guildId, lang) {
   return false;
 }
 
-function removeLanguage(guildId, lang) {
+export function removeLanguage(guildId: string, lang: string): boolean {
   const config = loadConfig();
   if (!config[guildId]) return false;
   const idx = config[guildId].targetLanguages.indexOf(lang);
@@ -52,7 +65,7 @@ function removeLanguage(guildId, lang) {
   return true;
 }
 
-function enableChannel(guildId, channelId) {
+export function enableChannel(guildId: string, channelId: string): boolean {
   const config = loadConfig();
   if (!config[guildId]) config[guildId] = { enabledChannels: [], targetLanguages: [] };
   if (!config[guildId].enabledChannels.includes(channelId)) {
@@ -63,7 +76,7 @@ function enableChannel(guildId, channelId) {
   return false;
 }
 
-function disableChannel(guildId, channelId) {
+export function disableChannel(guildId: string, channelId: string): boolean {
   const config = loadConfig();
   if (!config[guildId]) return false;
   const idx = config[guildId].enabledChannels.indexOf(channelId);
@@ -73,30 +86,19 @@ function disableChannel(guildId, channelId) {
   return true;
 }
 
-function isChannelEnabled(guildId, channelId) {
+export function isChannelEnabled(guildId: string, channelId: string): boolean {
   const guildConfig = getGuildConfig(guildId);
   return guildConfig.enabledChannels.includes(channelId);
 }
 
-function setRomanization(guildId, enabled) {
+export function setRomanization(guildId: string, enabled: boolean): void {
   const config = loadConfig();
   if (!config[guildId]) config[guildId] = { enabledChannels: [], targetLanguages: [], showRomanization: false };
   config[guildId].showRomanization = enabled;
   saveConfig(config);
 }
 
-function isRomanizationEnabled(guildId) {
+export function isRomanizationEnabled(guildId: string): boolean {
   const guildConfig = getGuildConfig(guildId);
   return guildConfig.showRomanization === true;
 }
-
-module.exports = {
-  getGuildConfig,
-  addLanguage,
-  removeLanguage,
-  enableChannel,
-  disableChannel,
-  isChannelEnabled,
-  setRomanization,
-  isRomanizationEnabled,
-};

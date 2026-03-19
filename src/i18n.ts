@@ -1,28 +1,41 @@
-const fs = require('fs');
-const path = require('path');
-const { getUserLanguage } = require('./userPrefs');
-const { getGuildConfig } = require('./serverConfig');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { getUserLanguage } from './userPrefs.js';
+import { getGuildConfig } from './serverConfig.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const LOCALES_DIR = path.join(__dirname, 'locales');
 const DEFAULT_LOCALE = 'zh-TW';
 
+interface LocaleData {
+  _fallback?: string;
+  _flag?: string;
+  [key: string]: string | undefined;
+}
+
+interface LocalesMap {
+  [code: string]: LocaleData;
+}
+
 // 啟動時自動掃描 src/locales/*.json 載入所有 locale
-const locales = {};
+const locales: LocalesMap = {};
 for (const file of fs.readdirSync(LOCALES_DIR)) {
   if (!file.endsWith('.json')) continue;
   const code = path.basename(file, '.json');
-  locales[code] = JSON.parse(fs.readFileSync(path.join(LOCALES_DIR, file), 'utf8'));
+  locales[code] = JSON.parse(fs.readFileSync(path.join(LOCALES_DIR, file), 'utf8')) as LocaleData;
 }
 
 /**
  * 翻譯函式，支援 {param} 插值。
  * Fallback 鏈：locale[key] → locale._fallback[key] → zh-TW[key] → raw key
  */
-function t(key, locale, params = {}) {
+export function t(key: string, locale: string, params: Record<string, string> = {}): string {
   let value = locales[locale]?.[key];
 
   if (value === undefined && locales[locale]?._fallback) {
-    value = locales[locales[locale]._fallback]?.[key];
+    value = locales[locales[locale]._fallback!]?.[key];
   }
 
   if (value === undefined) {
@@ -31,13 +44,18 @@ function t(key, locale, params = {}) {
 
   if (value === undefined) return key;
 
-  return value.replace(/\{(\w+)\}/g, (_, k) =>
+  return value.replace(/\{(\w+)\}/g, (_, k: string) =>
     params[k] !== undefined ? params[k] : `{${k}}`
   );
 }
 
+interface InteractionLike {
+  user: { id: string };
+  guildId: string | null;
+}
+
 /** user my-language > guild targetLang[0] > 'zh-TW' */
-function resolveLocale(interaction) {
+export function resolveLocale(interaction: InteractionLike): string {
   const userLang = getUserLanguage(interaction.user.id);
   if (userLang && locales[userLang]) return userLang;
 
@@ -52,7 +70,7 @@ function resolveLocale(interaction) {
 }
 
 /** guild targetLang[0] > 'zh-TW' */
-function resolveLocaleForGuild(guildId) {
+export function resolveLocaleForGuild(guildId: string): string {
   const config = getGuildConfig(guildId);
   if (config.targetLanguages?.[0] && locales[config.targetLanguages[0]]) {
     return config.targetLanguages[0];
@@ -60,25 +78,25 @@ function resolveLocaleForGuild(guildId) {
   return DEFAULT_LOCALE;
 }
 
-function getSupportedLanguages() {
+export function getSupportedLanguages(): string[] {
   return Object.keys(locales);
 }
 
-function getFlag(code) {
+export function getFlag(code: string): string {
   return locales[code]?._flag || '🌐';
 }
 
-function getLangName(code, locale = DEFAULT_LOCALE) {
+export function getLangName(code: string, locale: string = DEFAULT_LOCALE): string {
   return t(`lang_name.${code}`, locale);
 }
 
 /** 取得語言的自稱名稱（endonym），例如 English、日本語、한국어 */
-function getNativeName(code) {
+export function getNativeName(code: string): string {
   return t(`lang_name.${code}`, code);
 }
 
 /** 搜尋所有 locale 的 lang_name.* 值，反查語言代碼 */
-function getLangCode(name) {
+export function getLangCode(name: string): string | null {
   for (const data of Object.values(locales)) {
     for (const [key, value] of Object.entries(data)) {
       if (key.startsWith('lang_name.') && value === name) {
@@ -88,14 +106,3 @@ function getLangCode(name) {
   }
   return null;
 }
-
-module.exports = {
-  t,
-  resolveLocale,
-  resolveLocaleForGuild,
-  getSupportedLanguages,
-  getFlag,
-  getLangName,
-  getNativeName,
-  getLangCode,
-};

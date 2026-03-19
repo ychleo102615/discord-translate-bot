@@ -1,23 +1,32 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const USAGE_PATH = path.join(DATA_DIR, 'usage.json');
 
-function ensureDataDir() {
+export interface UsageData {
+  totalChars: number;
+  resetAt: string;
+  limitReached: boolean;
+}
+
+function ensureDataDir(): void {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-function createDefaultUsage() {
+function createDefaultUsage(): UsageData {
   return { totalChars: 0, resetAt: getNextResetDate(), limitReached: false };
 }
 
-function getNextResetDate() {
+function getNextResetDate(): string {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString();
 }
 
-function loadUsage() {
+function loadUsage(): UsageData {
   ensureDataDir();
   if (!fs.existsSync(USAGE_PATH)) {
     const initial = createDefaultUsage();
@@ -25,21 +34,21 @@ function loadUsage() {
     return initial;
   }
   try {
-    return JSON.parse(fs.readFileSync(USAGE_PATH, 'utf8'));
+    return JSON.parse(fs.readFileSync(USAGE_PATH, 'utf8')) as UsageData;
   } catch (err) {
-    console.warn('[usageTracker] usage.json 損毀，重新建立：', err.message);
+    console.warn('[usageTracker] usage.json 損毀，重新建立：', (err as Error).message);
     const initial = createDefaultUsage();
     fs.writeFileSync(USAGE_PATH, JSON.stringify(initial, null, 2));
     return initial;
   }
 }
 
-function saveUsage(usage) {
+function saveUsage(usage: UsageData): void {
   ensureDataDir();
   fs.writeFileSync(USAGE_PATH, JSON.stringify(usage, null, 2));
 }
 
-function checkAndAutoReset() {
+function checkAndAutoReset(): UsageData {
   const usage = loadUsage();
   const now = new Date();
   if (now >= new Date(usage.resetAt)) {
@@ -50,12 +59,12 @@ function checkAndAutoReset() {
   return usage;
 }
 
-function getLimit() {
+export function getLimit(): number {
   return parseInt(process.env.TRANSLATE_CHAR_LIMIT || '500000', 10);
 }
 
 // 合併 check + add 為一個操作，減少 TOCTOU 問題
-function tryAddChars(count) {
+export function tryAddChars(count: number): { usage: UsageData; allowed: boolean } {
   const usage = checkAndAutoReset();
   if (usage.limitReached) return { usage, allowed: false };
 
@@ -67,21 +76,19 @@ function tryAddChars(count) {
   return { usage, allowed: true };
 }
 
-function resetUsage() {
+export function resetUsage(): UsageData {
   const reset = createDefaultUsage();
   saveUsage(reset);
   return reset;
 }
 
-function getUsage() {
+export function getUsage(): UsageData {
   return checkAndAutoReset();
 }
 
 // 每月自動重置排程（每小時檢查一次）
-function startResetSchedule() {
+export function startResetSchedule(): void {
   setInterval(() => {
     checkAndAutoReset();
   }, 60 * 60 * 1000);
 }
-
-module.exports = { tryAddChars, resetUsage, getUsage, getLimit, startResetSchedule };

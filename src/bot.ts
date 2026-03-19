@@ -1,9 +1,9 @@
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
-const messageCreateHandler = require('./events/messageCreate');
-const interactionCreateHandler = require('./events/interactionCreate');
-const { startResetSchedule } = require('./usageTracker');
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import messageCreateHandler from './events/messageCreate.js';
+import interactionCreateHandler from './events/interactionCreate.js';
+import { startResetSchedule } from './usageTracker.js';
 
-function startBot() {
+export function startBot(): void {
   const client = new Client({
     intents: [
       GatewayIntentBits.Guilds,
@@ -14,7 +14,7 @@ function startBot() {
   });
 
   client.once('ready', () => {
-    console.log(`[Bot] 已登入為 ${client.user.tag}`);
+    console.log(`[Bot] 已登入為 ${client.user?.tag}`);
     startResetSchedule();
   });
 
@@ -23,5 +23,3 @@ function startBot() {
 
   client.login(process.env.DISCORD_TOKEN);
 }
-
-module.exports = { startBot };

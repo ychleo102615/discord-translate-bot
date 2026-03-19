@@ -1,16 +1,16 @@
-const { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
-const { detect } = require('../translate');
-const { segment, cacheTokens } = require('../segment/index');
-const { t, resolveLocale, getFlag, getNativeName, getLangCode } = require('../i18n');
+import { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
+import { detect } from '../translate.js';
+import { segment, cacheTokens } from '../segment/index.js';
+import { t, resolveLocale, getFlag, getNativeName, getLangCode } from '../i18n.js';
 
 const MAX_BUTTONS = 25; // 按鈕模式上限
 const PAGE_SIZE = 25;   // 選單模式每頁詞數
 
-const data = new ContextMenuCommandBuilder()
+export const data = new ContextMenuCommandBuilder()
   .setName('查詞')
   .setType(ApplicationCommandType.Message);
 
-async function execute(interaction) {
+export async function execute(interaction: any): Promise<void> {
   await interaction.deferReply({ ephemeral: true });
 
   const locale = resolveLocale(interaction);
@@ -33,8 +33,8 @@ async function execute(interaction) {
 
 // 從翻譯 embed 解析各語言版本的文字，回傳 [{ value, text }] 或空陣列
 // 使用 locale-agnostic regex 以相容所有語言的 embed 格式
-function parseTranslateEmbed(embed) {
-  const results = [];
+export function parseTranslateEmbed(embed: any): Array<{ value: string; text: string }> {
+  const results: Array<{ value: string; text: string }> = [];
 
   if (embed.description) {
     // 匹配 **<任意文字> (<langCode>)：** 或 **<任意文字> (<langCode>):** 格式
@@ -47,7 +47,7 @@ function parseTranslateEmbed(embed) {
   }
 
   if (embed.fields) {
-    embed.fields.forEach((field, idx) => {
+    embed.fields.forEach((field: any, idx: number) => {
       // field name 格式："{flag} {langName}"，取第一個空格之後的全部文字作為語言名稱
       const spaceIdx = field.name.indexOf(' ');
       if (spaceIdx === -1) return;
@@ -63,7 +63,7 @@ function parseTranslateEmbed(embed) {
   return results;
 }
 
-async function handleTranslateEmbed(interaction, targetMessage, locale) {
+async function handleTranslateEmbed(interaction: any, targetMessage: any, locale: string): Promise<void> {
   const embed = targetMessage.embeds[0];
   if (!embed) {
     return interaction.editReply({ content: t('lookup.cannot_parse', locale) });
@@ -80,9 +80,9 @@ async function handleTranslateEmbed(interaction, targetMessage, locale) {
   }
 
   // 多個版本，顯示 Select Menu 讓使用者選擇
-  const embedTexts = {};
+  const embedTexts: Record<string, string> = {};
   options.forEach(opt => { embedTexts[opt.value] = opt.text; });
-  cacheTokens(`embed:${targetMessage.id}`, 'texts', [{ word: JSON.stringify(embedTexts) }]);
+  cacheTokens(`embed:${targetMessage.id}`, 'texts', [{ word: JSON.stringify(embedTexts), lemma: '', pos: '' }]);
 
   const selectMenu = new StringSelectMenuBuilder()
     .setCustomId(`wls:${targetMessage.id}`)
@@ -97,14 +97,14 @@ async function handleTranslateEmbed(interaction, targetMessage, locale) {
       };
     }));
 
-  const row = new ActionRowBuilder().addComponents(selectMenu);
+  const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
   await interaction.editReply({ content: t('lookup.select_prompt', locale), components: [row] });
 }
 
 // 去重邏輯，回傳 [{ token, index }]
-function dedupeTokens(tokens, selected = new Set()) {
-  const seen = new Set();
-  const entries = [];
+export function dedupeTokens(tokens: any[], selected: Set<number> = new Set()): Array<{ token: any; index: number }> {
+  const seen = new Set<string>();
+  const entries: Array<{ token: any; index: number }> = [];
   for (const token of tokens) {
     const idx = tokens.indexOf(token);
     if (!seen.has(token.word) && !selected.has(idx)) {
@@ -116,7 +116,7 @@ function dedupeTokens(tokens, selected = new Set()) {
 }
 
 // selected: Set of indices already looked up; results: array of result lines
-function buildWordPayload(tokens, langCode, messageId, selected = new Set(), results = [], locale = 'zh-TW') {
+export function buildWordPayload(tokens: any[], langCode: string, messageId: string, selected: Set<number> = new Set(), results: string[] = [], locale: string = 'zh-TW'): any {
   const availableEntries = dedupeTokens(tokens, selected);
   const content = results.length > 0 ? results.join('\n') : '';
 
@@ -131,9 +131,9 @@ function buildWordPayload(tokens, langCode, messageId, selected = new Set(), res
   }
 
   // ≤25 詞：維持按鈕模式
-  const rows = [];
+  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
   for (let i = 0; i < availableEntries.length; i += 5) {
-    const row = new ActionRowBuilder();
+    const row = new ActionRowBuilder<ButtonBuilder>();
     const chunk = availableEntries.slice(i, i + 5);
     chunk.forEach(({ token, index }) => {
       row.addComponents(
@@ -150,7 +150,7 @@ function buildWordPayload(tokens, langCode, messageId, selected = new Set(), res
 }
 
 // SelectMenu + 翻頁按鈕模式
-function buildPagedPayload(entries, langCode, messageId, page, locale, headerContent = '') {
+export function buildPagedPayload(entries: Array<{ token: any; index: number }>, langCode: string, messageId: string, page: number, locale: string, headerContent: string = ''): any {
   const totalPages = Math.ceil(entries.length / PAGE_SIZE);
   const pageEntries = entries.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -159,15 +159,15 @@ function buildPagedPayload(entries, langCode, messageId, page, locale, headerCon
     .setCustomId(`wlm:${messageId}:${langCode}:${page}`)
     .setPlaceholder(t('lookup.select_word', locale))
     .addOptions(pageEntries.map(({ token, index }) => {
-      const option = { label: token.word.slice(0, 100), value: String(index) };
+      const option: { label: string; value: string; description?: string } = { label: token.word.slice(0, 100), value: String(index) };
       if (token.pos) option.description = token.pos;
       return option;
     }));
 
-  const selectRow = new ActionRowBuilder().addComponents(selectMenu);
+  const selectRow = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(selectMenu);
 
   // 翻頁按鈕列
-  const paginationRow = new ActionRowBuilder().addComponents(
+  const paginationRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`wlp:${messageId}:${langCode}:${page - 1}`)
       .setLabel(t('lookup.page_prev', locale))
@@ -175,7 +175,7 @@ function buildPagedPayload(entries, langCode, messageId, page, locale, headerCon
       .setDisabled(page === 0),
     new ButtonBuilder()
       .setCustomId(`wli:${messageId}`)
-      .setLabel(t('lookup.page_indicator', locale, { current: page + 1, total: totalPages }))
+      .setLabel(t('lookup.page_indicator', locale, { current: String(page + 1), total: String(totalPages) }))
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(true),
     new ButtonBuilder()
@@ -191,7 +191,7 @@ function buildPagedPayload(entries, langCode, messageId, page, locale, headerCon
   };
 }
 
-async function buildWordMenu(text, langCode, messageId, locale = 'zh-TW') {
+export async function buildWordMenu(text: string, langCode: string, messageId: string, locale: string = 'zh-TW'): Promise<any> {
   const tokens = await segment(text, langCode);
   if (tokens.length === 0) return null;
 
@@ -199,12 +199,10 @@ async function buildWordMenu(text, langCode, messageId, locale = 'zh-TW') {
   return buildWordPayload(tokens, langCode, messageId, undefined, undefined, locale);
 }
 
-async function sendWordMenu(interaction, text, langCode, messageId, locale) {
+async function sendWordMenu(interaction: any, text: string, langCode: string, messageId: string, locale: string): Promise<void> {
   const payload = await buildWordMenu(text, langCode, messageId, locale);
   if (!payload) {
     return interaction.editReply({ content: t('lookup.no_tokens', locale) });
   }
   await interaction.editReply(payload);
 }
-
-module.exports = { data, execute, buildWordMenu, buildWordPayload, buildPagedPayload, dedupeTokens, parseTranslateEmbed };

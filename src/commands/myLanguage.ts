@@ -1,13 +1,13 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { getUserLanguage, setUserLanguage } = require('../userPrefs');
-const { t, resolveLocale, getSupportedLanguages, getNativeName } = require('../i18n');
+import { SlashCommandBuilder } from 'discord.js';
+import { getUserLanguage, setUserLanguage } from '../userPrefs.js';
+import { t, resolveLocale, getSupportedLanguages, getNativeName } from '../i18n.js';
 
 const langChoices = getSupportedLanguages().map(code => ({
   name: `${getNativeName(code)} (${code})`,
   value: code,
 }));
 
-const data = new SlashCommandBuilder()
+export const data = new SlashCommandBuilder()
   .setName('my-language')
   .setDescription('設定或查看你的個人翻譯語言偏好')
   .addSubcommand(sub =>
@@ -25,7 +25,7 @@ const data = new SlashCommandBuilder()
       .setDescription('查看你目前的偏好語言')
   );
 
-async function execute(interaction) {
+export async function execute(interaction: any): Promise<void> {
   const sub = interaction.options.getSubcommand();
   const locale = resolveLocale(interaction);
 
@@ -52,5 +52,3 @@ async function execute(interaction) {
     }
   }
 }
-
-module.exports = { data, execute };

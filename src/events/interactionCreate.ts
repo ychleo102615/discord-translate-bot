@@ -1,23 +1,27 @@
-const commands = require('../commands');
-const { handleWordSelect, handleWordMenuSelect, handlePageNav } = require('../interactions/lookupButtons');
-const { handleLangSelect } = require('../interactions/lookupSelectMenu');
-const { handleInlineLookup } = require('../interactions/lookupInline');
-const { t, resolveLocale } = require('../i18n');
+import type { Interaction } from 'discord.js';
+import commands from '../commands/index.js';
+import { handleWordSelect, handleWordMenuSelect, handlePageNav } from '../interactions/lookupButtons.js';
+import { handleLangSelect } from '../interactions/lookupSelectMenu.js';
+import { handleInlineLookup } from '../interactions/lookupInline.js';
+import { t, resolveLocale } from '../i18n.js';
 
-function errorHandler(label) {
-  return async (interaction, err) => {
+function errorHandler(label: string) {
+  return async (interaction: Interaction, err: unknown): Promise<void> => {
     console.error(`[interactionCreate] ${label}失敗：`, err);
-    const locale = resolveLocale(interaction);
+    const locale = resolveLocale(interaction as any);
     const msg = { content: t('common.error', locale), ephemeral: true };
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(msg);
-    } else {
-      await interaction.reply(msg);
+    if ('replied' in interaction && 'deferred' in interaction) {
+      const repliable = interaction as any;
+      if (repliable.replied || repliable.deferred) {
+        await repliable.followUp(msg);
+      } else {
+        await repliable.reply(msg);
+      }
     }
   };
 }
 
-module.exports = async (interaction) => {
+export default async function interactionCreateHandler(interaction: Interaction): Promise<void> {
   // Slash commands 和 Context Menu commands
   if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
     const command = commands.get(interaction.commandName);
@@ -60,4 +64,4 @@ module.exports = async (interaction) => {
     }
     return;
   }
-};
+}

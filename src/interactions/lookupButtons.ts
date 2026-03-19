@@ -1,23 +1,26 @@
-const { getCache } = require('../segment/index');
-const { translate } = require('../translate');
-const { getUserLanguage } = require('../userPrefs');
-const { getGuildConfig } = require('../serverConfig');
-const { findOrCreateVocabThread, postVocabEntry } = require('../vocabThread');
-const { buildPagedPayload, dedupeTokens } = require('../commands/lookup');
-const { t, resolveLocale } = require('../i18n');
+import type { MessageComponentInteraction } from 'discord.js';
+import { getCache } from '../segment/index.js';
+import { translate } from '../translate.js';
+import { getUserLanguage } from '../userPrefs.js';
+import { getGuildConfig } from '../serverConfig.js';
+import { findOrCreateVocabThread, postVocabEntry } from '../vocabThread.js';
+import { buildPagedPayload, dedupeTokens } from '../commands/lookup.js';
+import { t, resolveLocale } from '../i18n.js';
 
 // 共用核心：翻譯單字 → 發佈詞彙本 → 更新回覆
-async function processWordLookup(interaction, messageId, langCode, wordIndex) {
+async function processWordLookup(interaction: MessageComponentInteraction, messageId: string, langCode: string, wordIndex: number): Promise<void> {
   const locale = resolveLocale(interaction);
 
   const cache = getCache(messageId, langCode);
   if (!cache) {
-    return interaction.followUp({ ephemeral: true, content: t('lookup.cache_expired', locale) });
+    await interaction.followUp({ ephemeral: true, content: t('lookup.cache_expired', locale) });
+    return;
   }
 
   const token = cache.tokens[wordIndex];
   if (!token) {
-    return interaction.followUp({ ephemeral: true, content: t('lookup.word_not_found', locale) });
+    await interaction.followUp({ ephemeral: true, content: t('lookup.word_not_found', locale) });
+    return;
   }
 
   const targetLang = resolveTargetLang(interaction);
@@ -25,24 +28,27 @@ async function processWordLookup(interaction, messageId, langCode, wordIndex) {
 
   const channel = interaction.channel;
   if (!channel) {
-    return interaction.followUp({ ephemeral: true, content: t('lookup.no_channel', locale) });
+    await interaction.followUp({ ephemeral: true, content: t('lookup.no_channel', locale) });
+    return;
   }
 
   // 取得原始訊息連結
-  let messageUrl = null;
+  let messageUrl: string | undefined;
   try {
-    const msg = await channel.messages.fetch(messageId);
-    messageUrl = msg.url;
+    if ('messages' in channel) {
+      const msg = await channel.messages.fetch(messageId);
+      messageUrl = msg.url;
+    }
   } catch {
     // 忽略
   }
 
   // 發佈到詞彙本 Thread
-  const thread = await findOrCreateVocabThread(channel, interaction.user, locale);
+  const thread = await findOrCreateVocabThread(channel as any, interaction.user, locale);
   await postVocabEntry(thread, {
     word: token.word,
     lemma: token.lemma,
-    pos: token.pos,
+    pos: token.pos ?? undefined,
     langCode,
     translation,
     targetLang,
@@ -56,7 +62,7 @@ async function processWordLookup(interaction, messageId, langCode, wordIndex) {
 }
 
 // 按鈕模式：直接查詞
-async function handleWordSelect(interaction) {
+export async function handleWordSelect(interaction: MessageComponentInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
   if (parts.length !== 4) return;
 
@@ -68,20 +74,20 @@ async function handleWordSelect(interaction) {
 }
 
 // SelectMenu 模式：從選單選詞
-async function handleWordMenuSelect(interaction) {
+export async function handleWordMenuSelect(interaction: MessageComponentInteraction): Promise<void> {
   // customId 格式：wlm:{msgId}:{lang}:{page}
   const parts = interaction.customId.split(':');
   if (parts.length !== 4) return;
 
   const [, messageId, langCode] = parts;
-  const wordIndex = parseInt(interaction.values[0], 10);
+  const wordIndex = parseInt((interaction as any).values[0], 10);
 
   await interaction.deferUpdate();
   await processWordLookup(interaction, messageId, langCode, wordIndex);
 }
 
 // 翻頁按鈕：切換到指定頁
-async function handlePageNav(interaction) {
+export async function handlePageNav(interaction: MessageComponentInteraction): Promise<void> {
   // customId 格式：wlp:{msgId}:{lang}:{targetPage}
   const parts = interaction.customId.split(':');
   if (parts.length !== 4) return;
@@ -94,7 +100,8 @@ async function handlePageNav(interaction) {
 
   const cache = getCache(messageId, langCode);
   if (!cache) {
-    return interaction.followUp({ ephemeral: true, content: t('lookup.cache_expired', locale) });
+    await interaction.followUp({ ephemeral: true, content: t('lookup.cache_expired', locale) });
+    return;
   }
 
   const entries = dedupeTokens(cache.tokens);
@@ -102,7 +109,7 @@ async function handlePageNav(interaction) {
   await interaction.editReply(payload);
 }
 
-function resolveTargetLang(interaction) {
+function resolveTargetLang(interaction: MessageComponentInteraction): string {
   const userLang = getUserLanguage(interaction.user.id);
   if (userLang) return userLang;
 
@@ -115,5 +122,3 @@ function resolveTargetLang(interaction) {
 
   return 'en';
 }
-
-module.exports = { handleWordSelect, handleWordMenuSelect, handlePageNav };

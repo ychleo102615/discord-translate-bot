@@ -1,7 +1,8 @@
-const { parseTranslateEmbed, buildWordMenu } = require('../commands/lookup');
-const { t, resolveLocale } = require('../i18n');
+import type { ButtonInteraction } from 'discord.js';
+import { parseTranslateEmbed, buildWordMenu } from '../commands/lookup.js';
+import { t, resolveLocale } from '../i18n.js';
 
-async function handleInlineLookup(interaction) {
+export async function handleInlineLookup(interaction: ButtonInteraction): Promise<void> {
   // customId 格式：wlt:{value} 如 wlt:orig:ja 或 wlt:f0:en
   // 直接從 interaction.message 讀 embed，不需快取
   await interaction.deferReply({ ephemeral: true });
@@ -9,7 +10,8 @@ async function handleInlineLookup(interaction) {
   const locale = resolveLocale(interaction);
   const embed = interaction.message?.embeds?.[0];
   if (!embed) {
-    return interaction.editReply({ content: t('lookup.cannot_parse', locale) });
+    await interaction.editReply({ content: t('lookup.cannot_parse', locale) });
+    return;
   }
 
   // 從 customId 取出 value（去掉 wlt: 前綴）
@@ -20,15 +22,15 @@ async function handleInlineLookup(interaction) {
   const parsed = parseTranslateEmbed(embed);
   const match = parsed.find(p => p.value === selected);
   if (!match) {
-    return interaction.editReply({ content: t('lookup.text_not_found', locale) });
+    await interaction.editReply({ content: t('lookup.text_not_found', locale) });
+    return;
   }
 
   const messageId = interaction.message.id;
   const payload = await buildWordMenu(match.text, langCode, messageId, locale);
   if (!payload) {
-    return interaction.editReply({ content: t('lookup.no_tokens', locale) });
+    await interaction.editReply({ content: t('lookup.no_tokens', locale) });
+    return;
   }
   await interaction.editReply(payload);
 }
-
-module.exports = { handleInlineLookup };

@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import { REST, Routes } from 'discord.js';
-import * as translateCommand from './src/commands/translate.js';
-import * as setupCommand from './src/commands/setup.js';
-import * as usageCommand from './src/commands/usage.js';
-import * as lookupCommand from './src/commands/lookup.js';
-import * as myLanguageCommand from './src/commands/myLanguage.js';
+import * as translateCommand from './src/modules/translate/commands/translate.js';
+import * as setupCommand from './src/modules/translate/commands/setup.js';
+import * as usageCommand from './src/modules/translate/commands/usage.js';
+import * as lookupCommand from './src/modules/translate/commands/lookup.js';
+import * as myLanguageCommand from './src/modules/translate/commands/myLanguage.js';
 
 const commands = [
   translateCommand.data.toJSON(),

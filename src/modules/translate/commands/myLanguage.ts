@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { getUserLanguage, setUserLanguage } from '../userPrefs.js';
-import { t, getSupportedLanguages, getNativeName } from '../shared/i18n.js';
+import { t, getSupportedLanguages, getNativeName } from '../../../shared/i18n.js';
 import { resolveLocale } from '../resolveLocale.js';
 
 const langChoices = getSupportedLanguages().map(code => ({

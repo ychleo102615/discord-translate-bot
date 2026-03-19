@@ -4,11 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { EmbedBuilder, ChannelType } from 'discord.js';
 import type { TextChannel, ThreadChannel, User } from 'discord.js';
 import { romanize } from './romanize/index.js';
-import { t } from './shared/i18n.js';
+import { t } from '../../shared/i18n.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = path.join(__dirname, '..', '..', '..', 'data');
 const THREADS_PATH = path.join(DATA_DIR, 'vocabThreads.json');
 
 interface ThreadsData {

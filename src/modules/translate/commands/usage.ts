@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
 import { getUsage, getLimit, resetUsage } from '../usageTracker.js';
-import { t } from '../shared/i18n.js';
+import { t } from '../../../shared/i18n.js';
 import { resolveLocale } from '../resolveLocale.js';
 
 // locale code → toLocaleDateString locale string

@@ -1,10 +1,10 @@
 import type { Interaction } from 'discord.js';
 import commands from '../commands/index.js';
-import { handleWordSelect, handleWordMenuSelect, handlePageNav } from '../interactions/lookupButtons.js';
-import { handleLangSelect } from '../interactions/lookupSelectMenu.js';
-import { handleInlineLookup } from '../interactions/lookupInline.js';
+import { handleWordSelect, handleWordMenuSelect, handlePageNav } from '../modules/translate/interactions/lookupButtons.js';
+import { handleLangSelect } from '../modules/translate/interactions/lookupSelectMenu.js';
+import { handleInlineLookup } from '../modules/translate/interactions/lookupInline.js';
 import { t } from '../shared/i18n.js';
-import { resolveLocale } from '../resolveLocale.js';
+import { resolveLocale } from '../modules/translate/resolveLocale.js';
 
 function errorHandler(label: string) {
   return async (interaction: Interaction, err: unknown): Promise<void> => {

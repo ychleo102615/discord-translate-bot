@@ -1,7 +1,7 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
 import { detect } from '../translate.js';
 import { segment, cacheTokens } from '../segment/index.js';
-import { t, getFlag, getNativeName, getLangCode } from '../shared/i18n.js';
+import { t, getFlag, getNativeName, getLangCode } from '../../../shared/i18n.js';
 import { resolveLocale } from '../resolveLocale.js';
 
 const MAX_BUTTONS = 25; // 按鈕模式上限

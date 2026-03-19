@@ -4,7 +4,7 @@ import { detect, translate } from '../translate.js';
 import { isChannelEnabled, getGuildConfig, isRomanizationEnabled } from '../serverConfig.js';
 import { formatWithRomanization } from '../romanize/index.js';
 import { tryAddChars } from '../usageTracker.js';
-import { t, getFlag, getNativeName } from '../shared/i18n.js';
+import { t, getFlag, getNativeName } from '../../../shared/i18n.js';
 import { resolveLocaleForGuild } from '../resolveLocale.js';
 
 const truncate = (s: string, max = 1024): string => (s.length > max ? s.slice(0, max - 3) + '...' : s);

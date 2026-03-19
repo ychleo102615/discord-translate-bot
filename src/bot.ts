@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
-import messageCreateHandler from './events/messageCreate.js';
+import messageCreateHandler from './modules/translate/events/messageCreate.js';
 import interactionCreateHandler from './events/interactionCreate.js';
-import { startResetSchedule } from './usageTracker.js';
+import { startResetSchedule } from './modules/translate/usageTracker.js';
 
 export function startBot(): void {
   const client = new Client({

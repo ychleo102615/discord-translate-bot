@@ -1,7 +1,7 @@
 import type { StringSelectMenuInteraction } from 'discord.js';
 import { getCachedTokens } from '../segment/index.js';
 import { buildWordMenu } from '../commands/lookup.js';
-import { t } from '../shared/i18n.js';
+import { t } from '../../../shared/i18n.js';
 import { resolveLocale } from '../resolveLocale.js';
 
 export async function handleLangSelect(interaction: StringSelectMenuInteraction): Promise<void> {

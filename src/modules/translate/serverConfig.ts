@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = path.join(__dirname, '..', '..', '..', 'data');
 const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
 
 export interface GuildConfig {

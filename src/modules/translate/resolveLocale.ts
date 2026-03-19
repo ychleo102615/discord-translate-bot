@@ -1,6 +1,6 @@
 import { getUserLanguage } from './userPrefs.js';
 import { getGuildConfig } from './serverConfig.js';
-import { getSupportedLanguages } from './shared/i18n.js';
+import { getSupportedLanguages } from '../../shared/i18n.js';
 
 const DEFAULT_LOCALE = 'zh-TW';
 

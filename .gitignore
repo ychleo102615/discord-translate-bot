@@ -5,3 +5,4 @@ data/usage.json
 data/userPrefs.json
 data/vocabThreads.json
 credentials.json
+dist/

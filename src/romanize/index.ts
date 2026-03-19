@@ -1,11 +1,16 @@
-const googleStrategy = require('./strategies/google');
-const pinyinStrategy = require('./strategies/pinyin');
-const hangulStrategy = require('./strategies/hangul');
+import * as googleStrategy from './strategies/google.js';
+import * as pinyinStrategy from './strategies/pinyin.js';
+import * as hangulStrategy from './strategies/hangul.js';
 
 const PINYIN_LANGS = new Set(['zh', 'zh-TW', 'zh-CN']);
 const HANGUL_LANGS = new Set(['ko']);
 
-function resolveStrategy(langCode) {
+type ResolvedStrategy =
+  | { type: 'pinyin' }
+  | { type: 'hangul' }
+  | { type: 'google'; normalized: string };
+
+function resolveStrategy(langCode: string): ResolvedStrategy | null {
   if (PINYIN_LANGS.has(langCode)) return { type: 'pinyin' };
   if (HANGUL_LANGS.has(langCode)) return { type: 'hangul' };
   const base = langCode.split('-')[0];
@@ -13,15 +18,15 @@ function resolveStrategy(langCode) {
   return null;
 }
 
-function needsRomanization(langCode) {
+export function needsRomanization(langCode: string): boolean {
   return resolveStrategy(langCode) !== null;
 }
 
-async function romanize(text, langCode) {
+export async function romanize(text: string, langCode: string): Promise<string | null> {
   const resolved = resolveStrategy(langCode);
   if (!resolved) return null;
 
-  let result;
+  let result: string | null;
   switch (resolved.type) {
     case 'pinyin':
       result = pinyinStrategy.romanize(text);
@@ -38,7 +43,7 @@ async function romanize(text, langCode) {
   return result;
 }
 
-async function formatWithRomanization(text, langCode, maxLen = 1024) {
+export async function formatWithRomanization(text: string, langCode: string, maxLen: number = 1024): Promise<string> {
   const romanized = await romanize(text, langCode);
   if (!romanized) return text;
   const suffix = `\n> *${romanized}*`;
@@ -47,5 +52,3 @@ async function formatWithRomanization(text, langCode, maxLen = 1024) {
   const truncatedText = text.length > available ? text.slice(0, available - 3) + '...' : text;
   return `${truncatedText}${suffix}`;
 }
-
-module.exports = { romanize, formatWithRomanization, needsRomanization };

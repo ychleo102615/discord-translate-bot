@@ -7,6 +7,16 @@ const { t, resolveLocaleForGuild, getFlag, getNativeName } = require('../i18n');
 
 const truncate = (s, max = 1024) => (s.length > max ? s.slice(0, max - 3) + '...' : s);
 
+// 去除 Discord 格式標記（mention、channel、emoji、timestamp）和 URL，回傳純文字
+function stripNonText(text) {
+  return text
+    .replace(/<(?:@!?|#|@&)\d+>/g, '')       // <@id> <@!id> <#id> <@&id>
+    .replace(/<a?:\w+:\d+>/g, '')             // <:name:id> <a:name:id>
+    .replace(/<t:\d+(?::[tTdDfFR])?>/g, '')   // <t:timestamp:style>
+    .replace(/https?:\/\/\S+/g, '')           // URL
+    .trim();
+}
+
 module.exports = async (message) => {
   if (message.author.bot) return;
   if (!message.guild) return;
@@ -20,9 +30,15 @@ module.exports = async (message) => {
     const { targetLanguages } = getGuildConfig(guildId);
     if (!targetLanguages || targetLanguages.length === 0) return;
 
+    // 去除 Discord 格式和 URL 後，檢查是否還有實質文字
+    const meaningful = stripNonText(message.content);
+    if (meaningful.length < 2) return;
+
     const locale = resolveLocaleForGuild(guildId);
 
     const sourceLang = await detect(message.content);
+    if (sourceLang === 'und') return;
+
     const targets = targetLanguages.filter((lang) => {
       return lang !== sourceLang && !lang.startsWith(sourceLang) && !sourceLang.startsWith(lang);
     });
@@ -33,12 +49,16 @@ module.exports = async (message) => {
     const { usage, allowed } = tryAddChars(totalChars);
     if (!allowed) return;
 
-    const translations = await Promise.all(
+    const allTranslations = await Promise.all(
       targets.map(async (lang) => {
         const result = await translate(message.content, lang);
         return { lang, result };
       })
     );
+
+    // 過濾掉翻譯結果與原文相同的語言
+    const translations = allTranslations.filter(({ result }) => result && result !== message.content);
+    if (translations.length === 0) return;
 
     const romanEnabled = isRomanizationEnabled(guildId);
     const originalText = romanEnabled

@@ -3,9 +3,14 @@ const { translate, detect } = require('../translate');
 const { tryAddChars } = require('../usageTracker');
 const { isRomanizationEnabled } = require('../serverConfig');
 const { formatWithRomanization } = require('../romanize/index');
-const { t, resolveLocale } = require('../i18n');
+const { t, resolveLocale, getSupportedLanguages, getNativeName } = require('../i18n');
 
 const truncate = (s, max = 1024) => (s.length > max ? s.slice(0, max - 3) + '...' : s);
+
+const langChoices = getSupportedLanguages().map(code => ({
+  name: `${getNativeName(code)} (${code})`,
+  value: code,
+}));
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -15,7 +20,7 @@ module.exports = {
       opt.setName('text').setDescription('要翻譯的文字').setRequired(true)
     )
     .addStringOption((opt) =>
-      opt.setName('language').setDescription('目標語言代碼（例如：zh-TW, en, ja, ko）').setRequired(true)
+      opt.setName('language').setDescription('目標語言').setRequired(true).addChoices(...langChoices)
     ),
 
   async execute(interaction) {

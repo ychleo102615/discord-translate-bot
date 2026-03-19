@@ -1,6 +1,7 @@
 import type { ButtonInteraction } from 'discord.js';
 import { parseTranslateEmbed, buildWordMenu } from '../commands/lookup.js';
-import { t, resolveLocale } from '../i18n.js';
+import { t } from '../shared/i18n.js';
+import { resolveLocale } from '../resolveLocale.js';
 
 export async function handleInlineLookup(interaction: ButtonInteraction): Promise<void> {
   // customId 格式：wlt:{value} 如 wlt:orig:ja 或 wlt:f0:en

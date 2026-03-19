@@ -1,12 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getUserLanguage } from './userPrefs.js';
-import { getGuildConfig } from './serverConfig.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const LOCALES_DIR = path.join(__dirname, 'locales');
+const LOCALES_DIR = path.join(__dirname, '..', 'locales');
 const DEFAULT_LOCALE = 'zh-TW';
 
 interface LocaleData {
@@ -49,41 +47,12 @@ export function t(key: string, locale: string, params: Record<string, string> = 
   );
 }
 
-interface InteractionLike {
-  user: { id: string };
-  guildId: string | null;
-}
-
-/** user my-language > guild targetLang[0] > 'zh-TW' */
-export function resolveLocale(interaction: InteractionLike): string {
-  const userLang = getUserLanguage(interaction.user.id);
-  if (userLang && locales[userLang]) return userLang;
-
-  if (interaction.guildId) {
-    const config = getGuildConfig(interaction.guildId);
-    if (config.targetLanguages?.[0] && locales[config.targetLanguages[0]]) {
-      return config.targetLanguages[0];
-    }
-  }
-
-  return DEFAULT_LOCALE;
-}
-
-/** guild targetLang[0] > 'zh-TW' */
-export function resolveLocaleForGuild(guildId: string): string {
-  const config = getGuildConfig(guildId);
-  if (config.targetLanguages?.[0] && locales[config.targetLanguages[0]]) {
-    return config.targetLanguages[0];
-  }
-  return DEFAULT_LOCALE;
-}
-
 export function getSupportedLanguages(): string[] {
   return Object.keys(locales);
 }
 
 export function getFlag(code: string): string {
-  return locales[code]?._flag || '🌐';
+  return locales[code]?._flag || '\u{1f310}';
 }
 
 export function getLangName(code: string, locale: string = DEFAULT_LOCALE): string {

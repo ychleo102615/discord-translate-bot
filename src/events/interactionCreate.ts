@@ -3,7 +3,8 @@ import commands from '../commands/index.js';
 import { handleWordSelect, handleWordMenuSelect, handlePageNav } from '../interactions/lookupButtons.js';
 import { handleLangSelect } from '../interactions/lookupSelectMenu.js';
 import { handleInlineLookup } from '../interactions/lookupInline.js';
-import { t, resolveLocale } from '../i18n.js';
+import { t } from '../shared/i18n.js';
+import { resolveLocale } from '../resolveLocale.js';
 
 function errorHandler(label: string) {
   return async (interaction: Interaction, err: unknown): Promise<void> => {

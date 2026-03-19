@@ -5,7 +5,8 @@ import { getUserLanguage } from '../userPrefs.js';
 import { getGuildConfig } from '../serverConfig.js';
 import { findOrCreateVocabThread, postVocabEntry } from '../vocabThread.js';
 import { buildPagedPayload, dedupeTokens } from '../commands/lookup.js';
-import { t, resolveLocale } from '../i18n.js';
+import { t } from '../shared/i18n.js';
+import { resolveLocale } from '../resolveLocale.js';
 
 // 共用核心：翻譯單字 → 發佈詞彙本 → 更新回覆
 async function processWordLookup(interaction: MessageComponentInteraction, messageId: string, langCode: string, wordIndex: number): Promise<void> {

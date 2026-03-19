@@ -3,7 +3,8 @@ import { translate, detect } from '../translate.js';
 import { tryAddChars } from '../usageTracker.js';
 import { isRomanizationEnabled } from '../serverConfig.js';
 import { formatWithRomanization } from '../romanize/index.js';
-import { t, resolveLocale, getSupportedLanguages, getNativeName } from '../i18n.js';
+import { t, getSupportedLanguages, getNativeName } from '../shared/i18n.js';
+import { resolveLocale } from '../resolveLocale.js';
 
 const truncate = (s: string, max: number = 1024): string => (s.length > max ? s.slice(0, max - 3) + '...' : s);
 

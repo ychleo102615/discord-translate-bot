@@ -1,13 +1,19 @@
 // CJK 等語言的斷詞策略，使用 Google Cloud Natural Language API
 
-const language = require('@google-cloud/language');
+import language from '@google-cloud/language';
 
 const client = new language.LanguageServiceClient();
 
-async function segment(text, lang) {
+interface Token {
+  word: string;
+  lemma: string;
+  pos: string | null;
+}
+
+export async function segment(text: string, lang: string): Promise<Token[]> {
   const document = {
     content: text,
-    type: 'PLAIN_TEXT',
+    type: 'PLAIN_TEXT' as const,
     language: lang,
   };
 
@@ -15,13 +21,11 @@ async function segment(text, lang) {
   const tokens = result.tokens || [];
 
   return tokens
-    .filter(t => t.partOfSpeech?.tag !== 'PUNCT')
-    .map(t => ({
+    .filter((t: any) => t.partOfSpeech?.tag !== 'PUNCT')
+    .map((t: any) => ({
       word: t.text?.content || '',
       lemma: t.lemma || t.text?.content || '',
       pos: t.partOfSpeech?.tag || null,
     }))
-    .filter(t => t.word.length > 0);
+    .filter((t: Token) => t.word.length > 0);
 }
-
-module.exports = { segment };

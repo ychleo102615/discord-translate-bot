@@ -61,23 +61,33 @@
 為前端管理介面打基礎。
 
 ### 3.1 資料庫
-- [ ] 安裝 `better-sqlite3` + `@types/better-sqlite3`
-- [ ] `src/shared/db.ts`：初始化 SQLite，建立連線
+- [x] 安裝 `better-sqlite3` + `@types/better-sqlite3`
+- [x] `src/shared/db.ts`：初始化 SQLite，建立連線（sessions + audit_log 表，WAL 模式，migration 機制）
 
 ### 3.2 Express API
-- [ ] 安裝 `express` + `@types/express`
-- [ ] `src/api/server.ts`：Express app 設定
-- [ ] 在 `src/index.ts` 中同時啟動 Bot + API Server
+- [x] 安裝 `express` + `@types/express` + `cors` + `cookie-parser`
+- [x] `src/api/server.ts`：Express app 工廠
+- [x] `src/api/routes/guilds.ts`：Guild config CRUD（6 個端點）
+- [x] `src/api/routes/usage.ts`：Usage 查詢
+- [x] `src/api/routes/user.ts`：User profile + prefs
+- [x] 在 `src/index.ts` 中同時啟動 Bot + API Server
+- [x] 擴充 `ModuleContext`（加入 `db` + `AppConfig`）
 
 ### 3.3 Discord OAuth2
-- [ ] `src/api/auth/discord.ts`：OAuth2 flow（authorize → callback → token）
-- [ ] `src/api/auth/middleware.ts`：JWT 驗證 + Guild ManageGuild 權限檢查
-- [ ] 安裝 `jsonwebtoken` + `@types/jsonwebtoken`
+- [x] `src/api/auth/discord.ts`：OAuth2 flow（authorize → callback → token）
+- [x] `src/api/auth/middleware.ts`：JWT 驗證 middleware
+- [x] `src/api/auth/permissions.ts`：Guild ManageGuild 權限檢查（含 5 分鐘快取）
+- [x] 安裝 `jsonwebtoken` + `@types/jsonwebtoken`
 
-### 3.4 驗證
-- [ ] API Server 啟動正常
-- [ ] OAuth2 登入流程可走通
-- [ ] 權限檢查正確
+### 3.4 測試框架
+- [x] 安裝 `vitest`，建立 `vitest.config.ts` + `tests/setup.ts`
+- [x] 14 個測試檔案，62 個測試全部通過
+
+### 3.5 驗證
+- [x] API Server 啟動正常
+- [x] OAuth2 登入流程可走通
+- [x] 權限檢查正確
+- [x] 型別檢查通過
 
 ---
 

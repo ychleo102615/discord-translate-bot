@@ -5,23 +5,23 @@
 打地基。完成後 bot 功能完全不變，但已經跑在 TS + ESM 上。
 
 ### 1.1 專案設定
-- [ ] 新增 `tsconfig.json`（strict, node16, outDir: dist）
-- [ ] `package.json` 加 `"type": "module"`
-- [ ] 加 dev dependencies：`typescript`, `tsx`, `@types/node`
-- [ ] 加 scripts：`dev`（tsx --watch）、`build`（tsc）、`start`（node dist/index.js）
-- [ ] `.gitignore` 加 `dist/`
+- [x] 新增 `tsconfig.json`（strict, node16, outDir: dist）
+- [x] `package.json` 加 `"type": "module"`
+- [x] 加 dev dependencies：`typescript`, `tsx`, `@types/node`
+- [x] 加 scripts：`dev`（tsx --watch）、`build`（tsc）、`start`（node dist/index.js）
+- [x] `.gitignore` 加 `dist/`
 
 ### 1.2 全檔案 CJS → ESM + JS → TS
-- [ ] 所有 `.js` 改副檔名為 `.ts`
-- [ ] `require()` → `import`，`module.exports` → `export`
-- [ ] `__dirname` → `import.meta.url`（i18n, serverConfig, userPrefs, usageTracker, vocabThread）
-- [ ] 所有內部 import 路徑加 `.js` 副檔名
-- [ ] 加上必要的型別標註（function signatures, 主要資料結構）
-- [ ] `deploy-commands.js` → `deploy-commands.ts`
+- [x] 所有 `.js` 改副檔名為 `.ts`
+- [x] `require()` → `import`，`module.exports` → `export`
+- [x] `__dirname` → `import.meta.url`（i18n, serverConfig, userPrefs, usageTracker, vocabThread）
+- [x] 所有內部 import 路徑加 `.js` 副檔名
+- [x] 加上必要的型別標註（function signatures, 主要資料結構）
+- [x] `deploy-commands.js` → `deploy-commands.ts`
 
 ### 1.3 驗證
-- [ ] `npm run build` 編譯通過
-- [ ] `npm run dev` 啟動 bot，功能正常（手動測試翻譯、查詞、設定）
+- [x] `npm run build` 編譯通過
+- [x] `npm run dev` 啟動 bot，功能正常（手動測試翻譯、查詞、設定）
 
 ---
 
@@ -30,29 +30,29 @@
 將現有翻譯功能搬進模組結構，Bot 層變成純路由器。
 
 ### 2.1 建立模組框架
-- [ ] 定義 `BotModule` / `ModuleContext` interface（`src/shared/types.ts`）
-- [ ] 建立 `src/bot/loader.ts`：掃描 modules，呼叫 setup，收集 commands/events/interactions
-- [ ] 建立 `src/bot/router.ts`：查表分派 interactionCreate
-- [ ] 建立 `src/bot/client.ts`：建立 Discord Client
+- [x] 定義 `BotModule` / `ModuleContext` interface（`src/shared/types.ts`）
+- [x] 建立 `src/bot/loader.ts`：掃描 modules，呼叫 setup，收集 commands/events/interactions
+- [x] 建立 `src/bot/router.ts`：查表分派 interactionCreate
+- [x] 建立 `src/bot/client.ts`：建立 Discord Client
 
 ### 2.2 搬移翻譯模組
-- [ ] 建立 `src/modules/translate/index.ts`（符合 BotModule 契約）
-- [ ] 搬移 commands/ → `src/modules/translate/commands/`
-- [ ] 搬移 events/ → `src/modules/translate/events/`
-- [ ] 搬移 interactions/ → `src/modules/translate/interactions/`
-- [ ] 搬移 romanize/, segment/ → `src/modules/translate/`
-- [ ] 搬移 translate.ts, serverConfig.ts, usageTracker.ts, userPrefs.ts, vocabThread.ts → `src/modules/translate/`
+- [x] 建立 `src/modules/translate/index.ts`（符合 BotModule 契約）
+- [x] 搬移 commands/ → `src/modules/translate/commands/`
+- [x] 搬移 events/ → `src/modules/translate/events/`
+- [x] 搬移 interactions/ → `src/modules/translate/interactions/`
+- [x] 搬移 romanize/, segment/ → `src/modules/translate/`
+- [x] 搬移 translate.ts, serverConfig.ts, usageTracker.ts, userPrefs.ts, vocabThread.ts → `src/modules/translate/`
 
 ### 2.3 共用層提取
-- [ ] `src/shared/i18n.ts`（從 src/i18n.ts 搬入）
-- [ ] `src/shared/languages.ts`
+- [x] `src/shared/i18n.ts`（從 src/i18n.ts 搬入）
+- [x] `src/shared/languages.ts`
 
 ### 2.4 進入點重寫
-- [ ] `src/index.ts`：啟動 Bot（+ 未來 API Server）
-- [ ] 移除舊的 `src/bot.js`（邏輯已分散到 bot/ 和 modules/）
+- [x] `src/index.ts`：啟動 Bot（+ 未來 API Server）
+- [x] 移除舊的 `src/bot.js`（邏輯已分散到 bot/ 和 modules/）
 
 ### 2.5 驗證
-- [ ] 功能不變，手動測試翻譯、查詞、設定、用量
+- [x] 功能不變，手動測試翻譯、查詞、設定、用量
 
 ---
 

@@ -8,3 +8,7 @@ credentials.json
 dist/
 data/bot.db
 .worktrees/
+dashboard/node_modules/
+dashboard/.nuxt/
+dashboard/.output/
+dashboard/dist/

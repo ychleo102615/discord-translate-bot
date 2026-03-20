@@ -16,14 +16,14 @@ export function useAuth() {
 
   function setToken(jwt: string) {
     token.value = jwt;
-    const payload = JSON.parse(atob(jwt.split('.')[1]));
+    const payload = JSON.parse(atob(jwt.split('.')[1]!));
     user.value = { userId: payload.userId, username: payload.username, avatar: payload.avatar };
   }
 
   function restoreUser() {
     if (token.value && !user.value) {
       try {
-        const payload = JSON.parse(atob(token.value.split('.')[1]));
+        const payload = JSON.parse(atob(token.value.split('.')[1]!));
         user.value = { userId: payload.userId, username: payload.username, avatar: payload.avatar };
       } catch {
         token.value = null;

@@ -1,5 +1,16 @@
+<script setup lang="ts">
+const { isAuthenticated, restoreUser } = useAuth();
+
+onMounted(() => {
+  restoreUser();
+  if (isAuthenticated.value) {
+    navigateTo('/guilds');
+  } else {
+    navigateTo('/login');
+  }
+});
+</script>
+
 <template>
-  <div>
-    <h1>Discord Translate Bot Dashboard</h1>
-  </div>
+  <div />
 </template>

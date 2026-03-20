@@ -1,12 +1,8 @@
 node_modules/
 .env
-data/config.json
-data/usage.json
-data/userPrefs.json
-data/vocabThreads.json
+data/
 credentials.json
 dist/
-data/bot.db
 .worktrees/
 dashboard/node_modules/
 dashboard/.nuxt/

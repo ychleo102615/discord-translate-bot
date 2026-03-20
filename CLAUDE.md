@@ -5,31 +5,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-node index.js                  # 啟動 bot
-node deploy-commands.js        # 部署 slash commands 到 Discord（修改命令定義後必須執行）
+npm run dev                   # 開發模式（tsx --watch，支援 hot reload）
+npm run build                 # 編譯 TypeScript + 複製 locale JSON 到 dist/
+npm start                     # 啟動 production bot（需先 build）
+npm run deploy                # 部署 slash commands 到 Discord（修改命令定義後必須執行）
+npx tsc --noEmit              # 型別檢查（不產出檔案）
 ```
 
-無測試框架、無 build step、無 linter。專案使用 CommonJS（`require`/`module.exports`）。
+無測試框架、無 linter。專案使用 TypeScript + ESM（`import`/`export`，`"type": "module"`）。
 
 ## Architecture
 
-Discord 翻譯機器人，使用 Google Cloud Translation API 自動翻譯頻道訊息，並提供交互式查詞與詞彙本功能。
+Discord 翻譯機器人，使用 Google Cloud Translation API 自動翻譯頻道訊息，並提供交互式查詞與詞彙本功能。採用模組化架構，bot 層為純路由器，功能以 `BotModule` 介面隔離。
+
+### Directory structure
+
+```
+index.ts                      ← 進程入口（載入 dotenv，呼叫 startBot）
+deploy-commands.ts            ← slash commands 部署腳本
+src/
+├── index.ts                  ← 應用入口（createClient + loadModules + createRouter）
+├── locales/                  ← 語言 JSON 檔（自動探索）
+├── shared/                   ← 跨模組共用
+│   ├── types.ts              ← BotModule、Command、ModuleContext 介面
+│   ├── i18n.ts               ← i18n 核心（t、getFlag、getLangName 等）
+│   └── languages.ts          ← i18n 的薄包裝 re-export
+├── bot/                      ← bot 框架
+│   ├── client.ts             ← Discord Client 工廠
+│   ├── loader.ts             ← 模組掃描與載入（動態 import）
+│   └── router.ts             ← interactionCreate 事件路由器
+└── modules/translate/        ← 翻譯模組（BotModule 實作）
+    ├── index.ts              ← 模組入口（註冊 commands、events、interactions）
+    ├── resolveLocale.ts      ← locale 解析（從 shared/i18n 分離）
+    ├── commands/             ← translate、setup、usage、lookup、myLanguage
+    ├── events/               ← messageCreate（自動翻譯）
+    ├── interactions/         ← lookupButtons、lookupSelectMenu、lookupInline
+    ├── romanize/             ← 羅馬拼音策略路由器（pinyin、hangul、google）
+    ├── segment/              ← 斷詞策略路由器（googleNL、space）
+    ├── translate.ts          ← Google Translate v2 client 包裝
+    ├── serverConfig.ts       ← Guild 級設定（data/config.json）
+    ├── usageTracker.ts       ← 月度用量追蹤（data/usage.json）
+    ├── userPrefs.ts          ← 使用者語言偏好（data/userPrefs.json）
+    └── vocabThread.ts        ← 詞彙本 Thread 管理（data/vocabThreads.json）
+```
 
 ### Entry flow
 
-`index.js` → `src/bot.js`（建立 Discord client、綁定事件）→ 事件觸發時委託到 `src/events/` 和 `src/commands/`。
+`index.ts`（root）→ `src/index.ts`（`startBot()`）→ `bot/client.ts` 建立 Client → `bot/loader.ts` 掃描 `src/modules/*/index.ts` 動態載入模組 → `bot/router.ts` 建立 interactionCreate handler → 模組的 events 直接綁定到 client。
 
-### Key modules
+### BotModule 契約
 
-- **`src/i18n.js`** — i18n 核心。啟動時自動掃描 `src/locales/*.json` 載入所有 locale。提供 `t(key, locale, params)`、`resolveLocale(interaction)`、`resolveLocaleForGuild(guildId)`、`getSupportedLanguages()`、`getFlag()`、`getLangName()`、`getNativeName()`、`getLangCode()`。Fallback 鏈：locale → _fallback → zh-TW → raw key
-- **`src/locales/*.json`** — 語言定義的唯一來源。檔案名稱 = 語言代碼，自動探索。新增語言只需新增一個 JSON 檔案，不改任何程式碼。`zh-CN.json` 和 `zh.json` 為薄殼，透過 `_fallback` 共用 `zh-TW` 的翻譯
-- **`src/languages.js`** — `i18n.js` 的薄包裝，re-export 語言相關函式
-- **`src/translate.js`** — Google Translate v2 client 包裝（翻譯 + 語言偵測），使用 Service Account 認證（`GOOGLE_APPLICATION_CREDENTIALS`）
-- **`src/serverConfig.js`** — 伺服器級設定的讀寫層，存儲在 `data/config.json`。每個 guild 有獨立的 enabledChannels、targetLanguages、showRomanization 設定
-- **`src/usageTracker.js`** — 全局月度字元用量追蹤，存儲在 `data/usage.json`。`tryAddChars()` 合併檢查+更新為單一操作避免 race condition。預設上限 500,000 字元（可由 `TRANSLATE_CHAR_LIMIT` 環境變數配置）
-- **`src/userPrefs.js`** — 使用者個人語言偏好，存儲在 `data/userPrefs.json`。提供 `getUserLanguage(userId)` / `setUserLanguage(userId, language)`
-- **`src/vocabThread.js`** — 詞彙本 Thread 管理。Private Thread 優先策略（無權限時回退到公開 Thread）。`pendingCreations` Map 防止同一 key 同時建立多個 Thread 的 race condition。提供外部辭典連結（Jisho、MDBG、Naver、Merriam-Webster、Wiktionary）
-- **`src/commands/index.js`** — 以 Discord.js Collection 註冊所有 slash commands，`interactionCreate` 事件透過 `commandName` 查表執行
+每個模組必須 default export 一個 `BotModule` 物件（定義於 `src/shared/types.ts`）：
+
+```ts
+interface BotModule {
+  name: string;
+  commands: Collection<string, Command>;
+  events: Array<{ event: string; handler: (...args: any[]) => void }>;
+  interactions: {
+    buttons?: Array<{ prefix: string; handler: (interaction: ButtonInteraction) => Promise<void> }>;
+    selectMenus?: Array<{ prefix: string; handler: (interaction: StringSelectMenuInteraction) => Promise<void> }>;
+  };
+  setup(context: ModuleContext): void | Promise<void>;
+}
+```
+
+新增模組：在 `src/modules/` 建立資料夾，export default 一個 `BotModule`，loader 會自動掃描載入。
+
+### Module loader 注意事項
+
+`bot/loader.ts` 使用 `.ts`/`.js` 雙重探測：dev 模式（`tsx`）載入 `.ts`，production（`node dist/`）載入 `.js`。
 
 ### Commands
 
@@ -41,39 +86,24 @@ Discord 翻譯機器人，使用 Google Cloud Translation API 自動翻譯頻道
 | `/my-language` | Slash（set/show） | 設定/查詢個人語言偏好 |
 | `查詞` | Context Menu | 從訊息快速查詞（支援翻譯 Embed 與一般訊息） |
 
-### Events
-
-- **`src/events/messageCreate.js`** — 自動翻譯核心。偵測來源語言 → 過濾相同語言目標 → 原子用量檢查 → 並行翻譯所有目標語言 → 構造 Embed（含查詞按鈕列）
-- **`src/events/interactionCreate.js`** — 互動事件路由器。分派 slash commands、context menu、以及 `wlt:`/`wlw:`/`wlp:`/`wls:`/`wlm:` 前綴的按鈕與選單互動
-
-### Interactions（查詞子系統）
-
-- **`src/interactions/lookupButtons.js`** — 查詞處理核心。共用 `processWordLookup()` 處理翻譯、詞彙本發佈、外部連結。支援按鈕模式（≤25 詞）和分頁 SelectMenu 模式（>25 詞）
-- **`src/interactions/lookupSelectMenu.js`** — Embed 翻譯版本選擇。使用者從 Select Menu 選擇原文或翻譯版本後進行斷詞
-- **`src/interactions/lookupInline.js`** — Embed 內嵌直接查詞。點擊自動翻譯訊息下方的旗幟按鈕觸發
-
 ### Romanization — Strategy Pattern
 
-`src/romanize/index.js` 是路由器，根據語言代碼分派到不同策略：
+`modules/translate/romanize/index.ts` 是路由器，根據語言代碼分派到不同策略：
 
 | 語言 | 策略檔案 | 工具 |
 |------|---------|------|
-| zh, zh-TW, zh-CN | `strategies/pinyin.js` | `pinyin-pro`（本地，同步） |
-| ko | `strategies/hangul.js` | `hangul-romanization`（本地，同步） |
-| ja, ru, ar 等 14 種 | `strategies/google.js` | Google romanizeText v3 API（非同步） |
-
-對外統一介面：`needsRomanization(langCode)`、`formatWithRomanization(text, langCode, maxLen)`。新增語言支援只需加 strategy 檔案並在 `index.js` 的 `resolveStrategy()` 加入路由。
+| zh, zh-TW, zh-CN | `strategies/pinyin.ts` | `pinyin-pro`（本地，同步） |
+| ko | `strategies/hangul.ts` | `hangul-romanization`（本地，同步） |
+| ja, ru, ar 等 14 種 | `strategies/google.ts` | Google romanizeText v3 API（非同步） |
 
 ### Segmentation — Strategy Pattern
 
-`src/segment/index.js` 是斷詞路由器，附帶 15 分鐘 TTL 的記憶體快取（每 5 分鐘自動清理）：
+`modules/translate/segment/index.ts` 是斷詞路由器，附帶 15 分鐘 TTL 的記憶體快取（每 5 分鐘自動清理）：
 
 | 語言 | 策略檔案 | 工具 |
 |------|---------|------|
-| zh, zh-TW, zh-CN, ja, th | `strategies/googleNL.js` | Google Natural Language API `analyzeSyntax`（回傳 word/lemma/pos） |
-| 其他（en, ko, fr 等） | `strategies/space.js` | 正則空格分隔 |
-
-快取結構：`{ tokens, selected (Set), results (Array), createdAt }`，以 `${messageId}:${langCode}` 為 key。
+| zh, zh-TW, zh-CN, ja, th | `strategies/googleNL.ts` | Google Natural Language API `analyzeSyntax` |
+| 其他（en, ko, fr 等） | `strategies/space.ts` | 正則空格分隔 |
 
 ### Data storage
 
@@ -85,6 +115,14 @@ Discord 翻譯機器人，使用 Google Cloud Translation API 自動翻譯頻道
 | `data/usage.json` | 全局月度用量（totalChars, resetAt, limitReached） |
 | `data/userPrefs.json` | 使用者偏好（userId → { language }） |
 | `data/vocabThreads.json` | 詞彙本 Thread ID 快取（`{channelId}:{userId}` → threadId） |
+
+### ESM + TypeScript 慣例
+
+- 所有相對 import 必須加 `.js` 擴展名（`import { t } from '../shared/i18n.js'`）
+- CJS 套件使用 default import（`import pkg from '@google-cloud/translate'`）
+- `__dirname` 替代：`path.dirname(fileURLToPath(import.meta.url))`
+- `t()` 的 params 型別為 `Record<string, string | number>`
+- `locales/*.json` 不會被 `tsc` 複製，由 `npm run build` 的 `copy-assets` 腳本處理
 
 ## Environment
 

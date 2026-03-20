@@ -61,7 +61,7 @@ export function createAuthRouter(config: AppConfig, db: Database.Database): Rout
   router.use(cookieParser());
 
   // GET /api/auth/authorize — redirect to Discord
-  router.get('/authorize', (req, res) => {
+  router.get('/authorize', (_req, res) => {
     const state = crypto.randomUUID();
     res.cookie('oauth_state', state, { httpOnly: true, maxAge: 10 * 60 * 1000, sameSite: 'lax' });
     res.redirect(getAuthorizeUrl(config.discord, state));

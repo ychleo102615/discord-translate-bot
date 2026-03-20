@@ -96,14 +96,14 @@
 獨立的前端專案。
 
 ### 4.1 初始化
-- [ ] 決定：monorepo（同 repo 子目錄）或獨立 repo
-- [ ] `npx nuxi init` 建立 Nuxt 專案
-- [ ] 設定為 SPA mode（`ssr: false`）
+- [x] 決定：monorepo（同 repo 子目錄）或獨立 repo
+- [x] `npx nuxi init` 建立 Nuxt 專案
+- [x] 設定為 SPA mode（`ssr: false`）
 
 ### 4.2 基礎頁面
-- [ ] Discord OAuth2 登入頁
-- [ ] Guild 選擇 / Dashboard
-- [ ] API 串接層
+- [x] Discord OAuth2 登入頁
+- [x] Guild 選擇 / Dashboard
+- [x] API 串接層
 
 ---
 

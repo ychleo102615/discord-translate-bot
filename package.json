@@ -10,7 +10,9 @@
     "start": "node dist/index.js",
     "deploy": "tsx deploy-commands.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dashboard:dev": "cd dashboard && npm run dev",
+    "dashboard:build": "cd dashboard && npm run build"
   },
   "keywords": [],
   "author": "",

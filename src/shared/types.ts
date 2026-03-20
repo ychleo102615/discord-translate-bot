@@ -1,7 +1,12 @@
 import type { Client, Collection, ButtonInteraction, StringSelectMenuInteraction } from 'discord.js';
 
+export interface CommandData {
+  name: string;
+  toJSON(): unknown;
+}
+
 export interface Command {
-  data: { name: string; toJSON(): unknown };
+  data: CommandData;
   execute(interaction: any): Promise<void>;
 }
 

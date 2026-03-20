@@ -90,5 +90,5 @@ export function getUsage(): UsageData {
 export function startResetSchedule(): void {
   setInterval(() => {
     checkAndAutoReset();
-  }, 60 * 60 * 1000);
+  }, 60 * 60 * 1000).unref();
 }

@@ -37,15 +37,15 @@ export function createRouter(modules: LoadedModules) {
     // Button interactions
     if (interaction.isButton()) {
       const customId = interaction.customId;
-      try {
-        for (const [prefix, handler] of buttonHandlers) {
-          if (customId.startsWith(`${prefix}:`)) {
+      for (const [prefix, handler] of buttonHandlers) {
+        if (customId.startsWith(`${prefix}:`)) {
+          try {
             await handler(interaction);
-            return;
+          } catch (err) {
+            await errorHandler('按鈕處理')(interaction, err);
           }
+          return;
         }
-      } catch (err) {
-        await errorHandler('按鈕處理')(interaction, err);
       }
       return;
     }
@@ -53,15 +53,15 @@ export function createRouter(modules: LoadedModules) {
     // Select Menu interactions
     if (interaction.isStringSelectMenu()) {
       const customId = interaction.customId;
-      try {
-        for (const [prefix, handler] of menuHandlers) {
-          if (customId.startsWith(`${prefix}:`)) {
+      for (const [prefix, handler] of menuHandlers) {
+        if (customId.startsWith(`${prefix}:`)) {
+          try {
             await handler(interaction);
-            return;
+          } catch (err) {
+            await errorHandler('選單處理')(interaction, err);
           }
+          return;
         }
-      } catch (err) {
-        await errorHandler('選單處理')(interaction, err);
       }
       return;
     }

@@ -29,7 +29,7 @@ for (const file of fs.readdirSync(LOCALES_DIR)) {
  * 翻譯函式，支援 {param} 插值。
  * Fallback 鏈：locale[key] → locale._fallback[key] → zh-TW[key] → raw key
  */
-export function t(key: string, locale: string, params: Record<string, string> = {}): string {
+export function t(key: string, locale: string, params: Record<string, string | number> = {}): string {
   let value = locales[locale]?.[key];
 
   if (value === undefined && locales[locale]?._fallback) {
@@ -43,7 +43,7 @@ export function t(key: string, locale: string, params: Record<string, string> = 
   if (value === undefined) return key;
 
   return value.replace(/\{(\w+)\}/g, (_, k: string) =>
-    params[k] !== undefined ? params[k] : `{${k}}`
+    params[k] !== undefined ? String(params[k]) : `{${k}}`
   );
 }
 

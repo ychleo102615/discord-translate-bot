@@ -12,11 +12,11 @@ import { handleInlineLookup } from './interactions/lookupInline.js';
 import { startResetSchedule } from './usageTracker.js';
 
 const commands = new Collection<string, Command>();
-commands.set(translateCommand.data.name, translateCommand as unknown as Command);
-commands.set(setupCommand.data.name, setupCommand as unknown as Command);
-commands.set(usageCommand.data.name, usageCommand as unknown as Command);
-commands.set(lookupCommand.data.name, lookupCommand as unknown as Command);
-commands.set(myLanguageCommand.data.name, myLanguageCommand as unknown as Command);
+commands.set(translateCommand.data.name, translateCommand);
+commands.set(setupCommand.data.name, setupCommand);
+commands.set(usageCommand.data.name, usageCommand);
+commands.set(lookupCommand.data.name, lookupCommand);
+commands.set(myLanguageCommand.data.name, myLanguageCommand);
 
 const translateModule: BotModule = {
   name: 'translate',

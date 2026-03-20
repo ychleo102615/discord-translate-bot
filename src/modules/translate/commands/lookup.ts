@@ -1,6 +1,7 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } from 'discord.js';
 import { detect } from '../translate.js';
 import { segment, cacheTokens } from '../segment/index.js';
+import type { Token } from '../segment/index.js';
 import { t, getFlag, getNativeName, getLangCode } from '../../../shared/i18n.js';
 import { resolveLocale } from '../resolveLocale.js';
 
@@ -103,11 +104,11 @@ async function handleTranslateEmbed(interaction: any, targetMessage: any, locale
 }
 
 // 去重邏輯，回傳 [{ token, index }]
-export function dedupeTokens(tokens: any[], selected: Set<number> = new Set()): Array<{ token: any; index: number }> {
+export function dedupeTokens(tokens: Token[], selected: Set<number> = new Set()): Array<{ token: Token; index: number }> {
   const seen = new Set<string>();
-  const entries: Array<{ token: any; index: number }> = [];
-  for (const token of tokens) {
-    const idx = tokens.indexOf(token);
+  const entries: Array<{ token: Token; index: number }> = [];
+  for (let idx = 0; idx < tokens.length; idx++) {
+    const token = tokens[idx];
     if (!seen.has(token.word) && !selected.has(idx)) {
       seen.add(token.word);
       entries.push({ token, index: idx });
@@ -117,7 +118,7 @@ export function dedupeTokens(tokens: any[], selected: Set<number> = new Set()): 
 }
 
 // selected: Set of indices already looked up; results: array of result lines
-export function buildWordPayload(tokens: any[], langCode: string, messageId: string, selected: Set<number> = new Set(), results: string[] = [], locale: string = 'zh-TW'): any {
+export function buildWordPayload(tokens: Token[], langCode: string, messageId: string, selected: Set<number> = new Set(), results: string[] = [], locale: string = 'zh-TW') {
   const availableEntries = dedupeTokens(tokens, selected);
   const content = results.length > 0 ? results.join('\n') : '';
 
@@ -151,7 +152,7 @@ export function buildWordPayload(tokens: any[], langCode: string, messageId: str
 }
 
 // SelectMenu + 翻頁按鈕模式
-export function buildPagedPayload(entries: Array<{ token: any; index: number }>, langCode: string, messageId: string, page: number, locale: string, headerContent: string = ''): any {
+export function buildPagedPayload(entries: Array<{ token: Token; index: number }>, langCode: string, messageId: string, page: number, locale: string, headerContent: string = '') {
   const totalPages = Math.ceil(entries.length / PAGE_SIZE);
   const pageEntries = entries.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -176,7 +177,7 @@ export function buildPagedPayload(entries: Array<{ token: any; index: number }>,
       .setDisabled(page === 0),
     new ButtonBuilder()
       .setCustomId(`wli:${messageId}`)
-      .setLabel(t('lookup.page_indicator', locale, { current: String(page + 1), total: String(totalPages) }))
+      .setLabel(t('lookup.page_indicator', locale, { current: page + 1, total: totalPages }))
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(true),
     new ButtonBuilder()
@@ -192,7 +193,7 @@ export function buildPagedPayload(entries: Array<{ token: any; index: number }>,
   };
 }
 
-export async function buildWordMenu(text: string, langCode: string, messageId: string, locale: string = 'zh-TW'): Promise<any> {
+export async function buildWordMenu(text: string, langCode: string, messageId: string, locale: string = 'zh-TW') {
   const tokens = await segment(text, langCode);
   if (tokens.length === 0) return null;
 

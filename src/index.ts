@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createApiServer } from './api/server.js';
 import { createClient } from './bot/client.js';
 import { loadModules } from './bot/loader.js';
 import { createRouter } from './bot/router.js';
@@ -37,6 +38,11 @@ export async function startBot(): Promise<void> {
 
   client.once('ready', () => {
     console.log(`[Bot] 已登入為 ${client.user?.tag}`);
+  });
+
+  const app = createApiServer(config, db);
+  app.listen(config.port, () => {
+    console.log(`[API] 已啟動於 port ${config.port}`);
   });
 
   await client.login(process.env.DISCORD_TOKEN);

@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Collection } from 'discord.js';
-import type { Client } from 'discord.js';
 import type { BotModule, Command, ModuleContext } from '../shared/types.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -14,12 +13,10 @@ export interface LoadedModules {
   menuHandlers: Map<string, (interaction: any) => Promise<void>>;
 }
 
-export async function loadModules(client: Client): Promise<LoadedModules> {
+export async function loadModules(context: ModuleContext): Promise<LoadedModules> {
   const commands = new Collection<string, Command>();
   const buttonHandlers = new Map<string, (interaction: any) => Promise<void>>();
   const menuHandlers = new Map<string, (interaction: any) => Promise<void>>();
-
-  const context: ModuleContext = { client };
 
   const entries = fs.readdirSync(MODULES_DIR, { withFileTypes: true });
   for (const entry of entries) {
@@ -43,7 +40,7 @@ export async function loadModules(client: Client): Promise<LoadedModules> {
 
     // Events
     for (const { event, handler } of mod.events) {
-      client.on(event, handler);
+      context.client.on(event, handler);
     }
 
     // Interactions

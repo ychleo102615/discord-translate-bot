@@ -21,7 +21,7 @@ export function createApiServer(config: AppConfig, db: Database.Database): expre
   app.use('/api/auth', createAuthRouter(config, db));
   app.use('/api/guilds', createGuildRoutes(requireAuth, requireGuildManager));
   app.use('/api/usage', createUsageRoutes(requireAuth));
-  app.use('/api/user', createUserRoutes(requireAuth));
+  app.use('/api/user', createUserRoutes(requireAuth, db));
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });

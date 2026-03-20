@@ -6,4 +6,5 @@ data/userPrefs.json
 data/vocabThreads.json
 credentials.json
 dist/
+data/bot.db
 .worktrees/

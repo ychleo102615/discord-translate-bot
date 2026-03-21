@@ -2,11 +2,11 @@
 
 ## Phase 1：資料層 + Migration
 
-- [ ] 1.1 建立 `src/modules/draw/data/migration.ts` — draw 模組 DB migration（建立 draw_pools、draw_pool_items、draw_strategies、draw_sessions、draw_session_items、draw_history 表）
-- [ ] 1.2 建立 `src/modules/draw/data/pools.ts` — 物品池 CRUD（createPool, getPool, listPools, updatePool, deletePool, addItem, getItems, updateItem, deleteItem）
-- [ ] 1.3 建立 `src/modules/draw/data/strategies.ts` — 策略 CRUD（createStrategy, getStrategy, listStrategies, updateStrategy, deleteStrategy）
-- [ ] 1.4 建立 `src/modules/draw/data/sessions.ts` — Session 管理（createSession, getSession, closeSession, getSessionItems, consumeItem, addHistory, getHistory）
-- [ ] 1.5 撰寫資料層測試（pools, strategies, sessions 的 CRUD 測試）
+- [x] 1.1 建立 `src/modules/draw/data/migration.ts` — draw 模組 DB migration（建立 draw_pools、draw_pool_items、draw_strategies、draw_sessions、draw_session_items、draw_history 表）
+- [x] 1.2 建立 `src/modules/draw/data/pools.ts` — 物品池 CRUD（createPool, getPool, listPools, updatePool, deletePool, addItem, getItems, updateItem, deleteItem）
+- [x] 1.3 建立 `src/modules/draw/data/strategies.ts` — 策略 CRUD（createStrategy, getStrategy, listStrategies, updateStrategy, deleteStrategy）
+- [x] 1.4 建立 `src/modules/draw/data/sessions.ts` — Session 管理（createSession, getSession, closeSession, getSessionItems, consumeItem, addHistory, getHistory）
+- [x] 1.5 撰寫資料層測試（pools, strategies, sessions 的 CRUD 測試）
 
 ## Phase 2：篩選引擎 + 分配策略
 

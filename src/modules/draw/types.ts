@@ -62,3 +62,8 @@ export interface HistoryRow {
   round: number;
   created_at: number;
 }
+
+export interface DistributionStrategy {
+  name: string;
+  distribute<T>(candidates: T[], count: number): T[];
+}

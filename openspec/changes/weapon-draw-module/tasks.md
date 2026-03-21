@@ -10,10 +10,10 @@
 
 ## Phase 2：篩選引擎 + 分配策略
 
-- [ ] 2.1 建立 `src/modules/draw/filter.ts` — 篩選引擎（applyFilters: 接收 FilterCondition[] 和物品列表，回傳篩選結果）
-- [ ] 2.2 建立 `src/modules/draw/distribution/strategies/randomUnique.ts` — 隨機不重複分配
-- [ ] 2.3 建立 `src/modules/draw/distribution/index.ts` — 分配策略路由器
-- [ ] 2.4 撰寫篩選引擎和分配策略測試
+- [x] 2.1 建立 `src/modules/draw/filter.ts` — 篩選引擎（applyFilters: 接收 FilterCondition[] 和物品列表，回傳篩選結果）
+- [x] 2.2 建立 `src/modules/draw/distribution/strategies/randomUnique.ts` — 隨機不重複分配
+- [x] 2.3 建立 `src/modules/draw/distribution/index.ts` — 分配策略路由器
+- [x] 2.4 撰寫篩選引擎和分配策略測試
 
 ## Phase 3：BotModule + Discord 指令
 

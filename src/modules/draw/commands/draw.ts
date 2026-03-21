@@ -7,7 +7,7 @@ import type Database from 'better-sqlite3';
 import type { StrategyRow, SessionItemRow, HistoryRow } from '../types.js';
 import { createSession, getSession, closeSession, getSessionItems, consumeItem, addHistory, getHistory } from '../data/sessions.js';
 import { getDistributionStrategy } from '../distribution/index.js';
-import { getDb } from '../index.js';
+import { getDb } from '../context.js';
 
 // --- Slash command definition ---
 

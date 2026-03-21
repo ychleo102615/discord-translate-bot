@@ -1,14 +1,8 @@
 import { Collection } from 'discord.js';
-import type Database from 'better-sqlite3';
 import type { BotModule, Command, ModuleContext } from '../../shared/types.js';
 import { runDrawMigration } from './data/migration.js';
+import { setDb } from './context.js';
 import * as drawCommand from './commands/draw.js';
-
-let db: Database.Database;
-
-export function getDb(): Database.Database {
-  return db;
-}
 
 const commands = new Collection<string, Command>();
 commands.set(drawCommand.data.name, drawCommand);
@@ -23,8 +17,8 @@ const drawModule: BotModule = {
   interactions: {},
 
   setup(context: ModuleContext) {
-    db = context.db;
-    runDrawMigration(db);
+    setDb(context.db);
+    runDrawMigration(context.db);
   },
 };
 

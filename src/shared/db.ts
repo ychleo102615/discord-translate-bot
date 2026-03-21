@@ -1,8 +1,11 @@
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import Database from 'better-sqlite3';
 
 let _db: Database.Database | null = null;
 
 export function initDatabase(dbPath: string): Database.Database {
+  mkdirSync(dirname(dbPath), { recursive: true });
   _db = new Database(dbPath);
   _db.pragma('journal_mode = WAL');
   _db.pragma('foreign_keys = ON');

@@ -7,6 +7,7 @@ import { createAuthRouter } from './auth/discord.js';
 import { createAuthMiddleware } from './auth/middleware.js';
 import { createGuildManagerMiddleware } from './auth/permissions.js';
 import { createGuildRoutes } from './routes/guilds.js';
+import { createDrawRoutes } from './routes/draw.js';
 import { createUsageRoutes } from './routes/usage.js';
 import { createUserRoutes } from './routes/user.js';
 
@@ -20,6 +21,7 @@ export function createApiServer(config: AppConfig, db: Database.Database): expre
 
   app.use('/api/auth', createAuthRouter(config, db));
   app.use('/api/guilds', createGuildRoutes(requireAuth, requireGuildManager));
+  app.use('/api/guilds', createDrawRoutes(requireAuth, requireGuildManager, db));
   app.use('/api/usage', createUsageRoutes(requireAuth));
   app.use('/api/user', createUserRoutes(requireAuth, db));
 

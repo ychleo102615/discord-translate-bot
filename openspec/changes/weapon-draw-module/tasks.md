@@ -17,31 +17,31 @@
 
 ## Phase 3：BotModule + Discord 指令
 
-- [ ] 3.1 建立 `src/modules/draw/index.ts` — BotModule 入口（setup 執行 migration，註冊 commands/events/interactions）
-- [ ] 3.2 建立 `src/modules/draw/commands/draw.ts` — `/draw` 指令（含 start, next, close, history 子指令）
-- [ ] 3.3 更新 `deploy-commands.ts` — 確認 loader 能掃描到新模組的指令
+- [x] 3.1 建立 `src/modules/draw/index.ts` — BotModule 入口（setup 執行 migration，註冊 commands/events/interactions）
+- [x] 3.2 建立 `src/modules/draw/commands/draw.ts` — `/draw` 指令（含 start, next, close, history 子指令）
+- [x] 3.3 更新 `deploy-commands.ts` — 確認 loader 能掃描到新模組的指令
 - [ ] 3.4 手動測試 Discord 指令（deploy → 執行 /draw start, next, close, history）
 
 ## Phase 4：REST API
 
-- [ ] 4.1 建立 `src/api/routes/draw.ts` — 物品池 CRUD 端點（POST/GET/PUT/DELETE /api/guilds/:guildId/draw/pools）
-- [ ] 4.2 新增物品 CRUD 端點（POST/GET/DELETE /api/guilds/:guildId/draw/pools/:poolId/items）
-- [ ] 4.3 新增策略 CRUD 端點（POST/GET/PUT/DELETE /api/guilds/:guildId/draw/strategies）
-- [ ] 4.4 新增 Session/歷史查詢端點（GET /api/guilds/:guildId/draw/sessions, GET .../history）
-- [ ] 4.5 在 `src/api/server.ts` 註冊 draw 路由
-- [ ] 4.6 撰寫 API 路由測試
+- [x] 4.1 建立 `src/api/routes/draw.ts` — 物品池 CRUD 端點（POST/GET/PUT/DELETE /api/guilds/:guildId/draw/pools）
+- [x] 4.2 新增物品 CRUD 端點（POST/GET/DELETE /api/guilds/:guildId/draw/pools/:poolId/items）
+- [x] 4.3 新增策略 CRUD 端點（POST/GET/PUT/DELETE /api/guilds/:guildId/draw/strategies）
+- [x] 4.4 新增 Session/歷史查詢端點（GET /api/guilds/:guildId/draw/sessions, GET .../history）
+- [x] 4.5 在 `src/api/server.ts` 註冊 draw 路由
+- [x] 4.6 撰寫 API 路由測試
 
 ## Phase 5：前端 Dashboard
 
-- [ ] 5.1 建立 `dashboard/app/pages/guilds/[guildId]/draw/index.vue` — 物品池列表頁
-- [ ] 5.2 建立 `dashboard/app/pages/guilds/[guildId]/draw/pools/[poolId].vue` — 物品池管理頁（schema 顯示、物品 CRUD 表格）
-- [ ] 5.3 建立 `dashboard/app/pages/guilds/[guildId]/draw/strategies/index.vue` — 策略列表頁
-- [ ] 5.4 建立 `dashboard/app/pages/guilds/[guildId]/draw/strategies/[strategyId].vue` — 策略編輯頁（篩選條件編輯器、分配方式選擇）
-- [ ] 5.5 建立 `dashboard/app/pages/guilds/[guildId]/draw/history.vue` — 歷史紀錄頁
-- [ ] 5.6 更新 `dashboard/app/pages/guilds/[guildId].vue` — Dashboard 頁面加入 draw 模組入口連結
+- [x] 5.1 建立 `dashboard/app/pages/guilds/[guildId]/draw/index.vue` — 物品池列表頁
+- [x] 5.2 建立 `dashboard/app/pages/guilds/[guildId]/draw/pools/[poolId].vue` — 物品池管理頁（schema 顯示、物品 CRUD 表格）
+- [x] 5.3 建立 `dashboard/app/pages/guilds/[guildId]/draw/strategies/index.vue` — 策略列表頁
+- [x] 5.4 建立 `dashboard/app/pages/guilds/[guildId]/draw/strategies/[strategyId].vue` — 策略編輯頁（篩選條件編輯器、分配方式選擇）
+- [x] 5.5 建立 `dashboard/app/pages/guilds/[guildId]/draw/history.vue` — 歷史紀錄頁
+- [x] 5.6 更新 `dashboard/app/pages/guilds/[guildId].vue` — Dashboard 頁面加入 draw 模組入口連結
 
 ## Phase 6：收尾
 
-- [ ] 6.1 型別檢查（`npx tsc --noEmit` + `npx nuxt typecheck`）
-- [ ] 6.2 全部測試通過（`npx vitest run`）
+- [x] 6.1 型別檢查（`npx tsc --noEmit` + `npx nuxt typecheck`）
+- [x] 6.2 全部測試通過（`npx vitest run`）
 - [ ] 6.3 手動整合測試（前端操作 → API → Discord 指令完整流程）

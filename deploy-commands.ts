@@ -5,6 +5,7 @@ import * as setupCommand from './src/modules/translate/commands/setup.js';
 import * as usageCommand from './src/modules/translate/commands/usage.js';
 import * as lookupCommand from './src/modules/translate/commands/lookup.js';
 import * as myLanguageCommand from './src/modules/translate/commands/myLanguage.js';
+import * as drawCommand from './src/modules/draw/commands/draw.js';
 
 const commands = [
   translateCommand.data.toJSON(),
@@ -12,6 +13,7 @@ const commands = [
   usageCommand.data.toJSON(),
   lookupCommand.data.toJSON(),
   myLanguageCommand.data.toJSON(),
+  drawCommand.data.toJSON(),
 ];
 
 const rest = new REST().setToken(process.env.DISCORD_TOKEN!);
